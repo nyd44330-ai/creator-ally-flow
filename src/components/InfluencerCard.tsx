@@ -1,4 +1,5 @@
 import { BadgeCheck, Bookmark } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import type { Influencer } from "@/lib/mock-influencers";
 
@@ -62,9 +63,13 @@ export function InfluencerCard({ influencer }: { influencer: Influencer }) {
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-2">
-        <button className="rounded-xl border border-primary/30 px-4 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary-soft">
+        <Link
+          to="/influencer/$id"
+          params={{ id: influencer.id }}
+          className="rounded-xl border border-primary/30 px-4 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary-soft"
+        >
           عرض الملف
-        </button>
+        </Link>
         <div className="flex flex-wrap justify-end gap-1.5">
           {influencer.services.map((s) => (
             <span
