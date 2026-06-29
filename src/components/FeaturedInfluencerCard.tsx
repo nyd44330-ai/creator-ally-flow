@@ -1,9 +1,14 @@
 import { BadgeCheck, Star } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { Influencer } from "@/lib/mock-influencers";
 
 export function FeaturedInfluencerCard({ influencer }: { influencer: Influencer }) {
   return (
-    <div className="relative h-44 w-32 shrink-0 overflow-hidden rounded-2xl shadow-[var(--shadow-card)]">
+    <Link
+      to="/influencer/$id"
+      params={{ id: influencer.id }}
+      className="relative h-44 w-32 shrink-0 overflow-hidden rounded-2xl shadow-[var(--shadow-card)]"
+    >
       <img
         src={influencer.image}
         alt={influencer.name}
@@ -24,6 +29,6 @@ export function FeaturedInfluencerCard({ influencer }: { influencer: Influencer 
           <Star className="size-3 fill-yellow-400 text-yellow-400" />
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
