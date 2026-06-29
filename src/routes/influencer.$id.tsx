@@ -10,7 +10,7 @@ import {
   Play,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
-import { getInfluencerById, type PortfolioItem } from "@/lib/mock-influencers";
+import { getInfluencerById, type Influencer, type PortfolioItem } from "@/lib/mock-influencers";
 
 export const Route = createFileRoute("/influencer/$id")({
   loader: ({ params }) => {
@@ -54,7 +54,7 @@ const platformIcon = {
 } as const;
 
 function ProfilePage() {
-  const { influencer: inf } = Route.useLoaderData();
+  const { influencer: inf } = Route.useLoaderData() as { influencer: Influencer };
 
   const socials = [
     inf.tiktokUrl && {
