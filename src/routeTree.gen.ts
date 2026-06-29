@@ -14,6 +14,7 @@ import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InfluencerIdRoute = InfluencerIdRouteImport.update({
+  id: '/influencer/$id',
+  path: '/influencer/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/campaigns' | '/favorites' | '/messages'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/campaigns'
+    | '/favorites'
+    | '/messages'
+    | '/influencer/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/campaigns' | '/favorites' | '/messages'
-  id: '__root__' | '/' | '/account' | '/campaigns' | '/favorites' | '/messages'
+  to:
+    | '/'
+    | '/account'
+    | '/campaigns'
+    | '/favorites'
+    | '/messages'
+    | '/influencer/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/campaigns'
+    | '/favorites'
+    | '/messages'
+    | '/influencer/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
+  InfluencerIdRoute: typeof InfluencerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/influencer/$id': {
+      id: '/influencer/$id'
+      path: '/influencer/$id'
+      fullPath: '/influencer/$id'
+      preLoaderRoute: typeof InfluencerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
+  InfluencerIdRoute: InfluencerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
