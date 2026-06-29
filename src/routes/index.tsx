@@ -1,29 +1,128 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Bell, Search, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
+import { InfluencerCard } from "@/components/InfluencerCard";
+import { FeaturedInfluencerCard } from "@/components/FeaturedInfluencerCard";
+import { allInfluencers, featuredInfluencers } from "@/lib/mock-influencers";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "اكتشف المؤثرين — منصة التسويق بالمؤثرين" },
+      {
+        name: "description",
+        content:
+          "تصفّح وتواصل مع أفضل المؤثرين في الجزائر والوطن العربي عبر منصة تسويق ذكية.",
+      },
+      { property: "og:title", content: "اكتشف المؤثرين" },
+      {
+        property: "og:description",
+        content: "منصة التسويق بالمؤثرين — اكتشف، تواصل، أطلق حملتك.",
+      },
     ],
   }),
-  component: Index,
+  component: DiscoverPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const filters = [
+  { label: "الأعلى تقييماً", active: true },
+  { label: "الموقع" },
+  { label: "الفئة" },
+  { label: "المنصة" },
+];
+
+function DiscoverPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div dir="rtl" className="min-h-screen bg-background pb-24">
+      {/* Header */}
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="mx-auto flex max-w-md items-center justify-between px-4 pt-4 pb-3">
+          <button
+            aria-label="الإشعارات"
+            className="rounded-full bg-surface p-2.5 shadow-[var(--shadow-soft)]"
+          >
+            <Bell className="size-5 text-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">اكتشف المؤثرين</h1>
+          <button
+            aria-label="الفلاتر"
+            className="rounded-full bg-surface p-2.5 shadow-[var(--shadow-soft)]"
+          >
+            <SlidersHorizontal className="size-5 text-foreground" />
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="mx-auto max-w-md px-4 pb-3">
+          <div className="flex items-center gap-2 rounded-2xl bg-surface px-4 py-3 shadow-[var(--shadow-soft)]">
+            <Search className="size-5 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder="ابحث عن مؤثر أو مجال..."
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none text-right"
+            />
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="mx-auto max-w-md overflow-x-auto px-4 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex items-center gap-2">
+            <button className="shrink-0 rounded-full border border-border bg-surface p-2">
+              <SlidersHorizontal className="size-4 text-muted-foreground" />
+            </button>
+            {filters.map((f) => (
+              <button
+                key={f.label}
+                className={
+                  "shrink-0 flex items-center gap-1 rounded-full border px-3.5 py-1.5 text-sm transition-colors " +
+                  (f.active
+                    ? "border-primary bg-primary-soft text-primary font-semibold"
+                    : "border-border bg-surface text-muted-foreground")
+                }
+              >
+                <ChevronDown className="size-3.5" />
+                <span>{f.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-md px-4">
+        {/* Featured */}
+        <section className="mt-2">
+          <div className="flex items-center justify-between">
+            <button className="text-sm font-semibold text-primary">
+              عرض الكل
+            </button>
+            <h2 className="text-base font-bold text-foreground">
+              مؤثرون مميزون
+            </h2>
+          </div>
+
+          <div className="mt-3 -mx-4 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-row-reverse justify-end gap-3">
+              {featuredInfluencers.map((inf) => (
+                <FeaturedInfluencerCard key={inf.id} influencer={inf} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* All */}
+        <section className="mt-6">
+          <h2 className="text-base font-bold text-foreground text-right">
+            جميع المؤثرين
+          </h2>
+          <div className="mt-3 space-y-3">
+            {allInfluencers.map((inf) => (
+              <InfluencerCard key={inf.id} influencer={inf} />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <BottomNav />
     </div>
   );
 }
