@@ -15,6 +15,7 @@ import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
+import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
 
 const MessagesRoute = MessagesRouteImport.update({
@@ -47,6 +48,11 @@ const InfluencerIdRoute = InfluencerIdRouteImport.update({
   path: '/influencer/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampaignPaymentRoute = CampaignPaymentRouteImport.update({
+  id: '/campaign/payment',
+  path: '/campaign/payment',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CampaignNewRoute = CampaignNewRouteImport.update({
   id: '/campaign/new',
   path: '/campaign/new',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/campaign/new': typeof CampaignNewRoute
+  '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/campaign/new': typeof CampaignNewRoute
+  '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/campaign/new': typeof CampaignNewRoute
+  '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/messages'
     | '/campaign/new'
+    | '/campaign/payment'
     | '/influencer/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/messages'
     | '/campaign/new'
+    | '/campaign/payment'
     | '/influencer/$id'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/messages'
     | '/campaign/new'
+    | '/campaign/payment'
     | '/influencer/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
+  CampaignPaymentRoute: typeof CampaignPaymentRoute
   InfluencerIdRoute: typeof InfluencerIdRoute
 }
 
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfluencerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaign/payment': {
+      id: '/campaign/payment'
+      path: '/campaign/payment'
+      fullPath: '/campaign/payment'
+      preLoaderRoute: typeof CampaignPaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/campaign/new': {
       id: '/campaign/new'
       path: '/campaign/new'
@@ -182,6 +202,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
+  CampaignPaymentRoute: CampaignPaymentRoute,
   InfluencerIdRoute: InfluencerIdRoute,
 }
 export const routeTree = rootRouteImport
