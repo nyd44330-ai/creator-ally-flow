@@ -103,10 +103,10 @@ function NewCampaignPage() {
     (step === 3 && form.deliverables.trim().length >= 10);
 
   const handleSubmit = () => {
-    toast.success("تم إنشاء الحملة بنجاح", {
-      description: `حملة "${form.name}" جاهزة للمراجعة.`,
+    toast.success("تمت مراجعة الحملة", {
+      description: `أكمل الدفع لإطلاق حملة "${form.name}".`,
     });
-    navigate({ to: "/campaigns" });
+    navigate({ to: "/campaign/payment" });
   };
 
   return (
