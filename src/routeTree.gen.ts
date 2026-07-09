@@ -19,6 +19,7 @@ import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.payment.success'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
 
 const MessagesRoute = MessagesRouteImport.update({
@@ -71,6 +72,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const CampaignPaymentSuccessRoute = CampaignPaymentSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => CampaignPaymentRoute,
+} as any)
 const ApiPublicChargilyWebhookRoute =
   ApiPublicChargilyWebhookRouteImport.update({
     id: '/api/public/chargily-webhook',
@@ -87,9 +93,10 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -100,9 +107,10 @@ export interface FileRoutesByTo {
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -114,9 +122,10 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/success'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/success'
   id:
     | '__root__'
     | '/'
@@ -158,6 +169,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/success'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -168,7 +180,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
-  CampaignPaymentRoute: typeof CampaignPaymentRoute
+  CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
   InfluencerIdRoute: typeof InfluencerIdRoute
   ApiPublicChargilyWebhookRoute: typeof ApiPublicChargilyWebhookRoute
 }
@@ -245,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/campaign/payment/success': {
+      id: '/campaign/payment/success'
+      path: '/success'
+      fullPath: '/campaign/payment/success'
+      preLoaderRoute: typeof CampaignPaymentSuccessRouteImport
+      parentRoute: typeof CampaignPaymentRoute
+    }
     '/api/public/chargily-webhook': {
       id: '/api/public/chargily-webhook'
       path: '/api/public/chargily-webhook'
@@ -265,6 +284,18 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface CampaignPaymentRouteChildren {
+  CampaignPaymentSuccessRoute: typeof CampaignPaymentSuccessRoute
+}
+
+const CampaignPaymentRouteChildren: CampaignPaymentRouteChildren = {
+  CampaignPaymentSuccessRoute: CampaignPaymentSuccessRoute,
+}
+
+const CampaignPaymentRouteWithChildren = CampaignPaymentRoute._addFileChildren(
+  CampaignPaymentRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
@@ -273,7 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
-  CampaignPaymentRoute: CampaignPaymentRoute,
+  CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
   InfluencerIdRoute: InfluencerIdRoute,
   ApiPublicChargilyWebhookRoute: ApiPublicChargilyWebhookRoute,
 }
