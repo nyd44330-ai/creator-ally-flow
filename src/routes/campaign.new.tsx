@@ -354,12 +354,12 @@ function NewCampaignPage() {
           )}
           <button
             type="button"
-            disabled={!canNext}
+            disabled={!canNext || submitting}
             onClick={() => (step < 3 ? setStep((s) => s + 1) : handleSubmit())}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-card transition hover:opacity-95 disabled:opacity-40"
           >
-            {step < 3 ? "التالي" : "إنشاء الحملة"}
-            {step < 3 ? <ArrowLeft className="size-4" /> : <Check className="size-4" />}
+            {submitting ? "جارٍ الإنشاء..." : step < 3 ? "التالي" : "إنشاء الحملة"}
+            {!submitting && (step < 3 ? <ArrowLeft className="size-4" /> : <Check className="size-4" />)}
           </button>
         </div>
       </div>
