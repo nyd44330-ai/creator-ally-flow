@@ -72,7 +72,10 @@ const initial: FormState = {
   notes: "",
 };
 
+const searchSchema = z.object({ influencer: z.string().optional() });
+
 export const Route = createFileRoute("/campaign/new")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "إنشاء حملة جديدة — منصة التسويق بالمؤثرين" },
@@ -84,8 +87,18 @@ export const Route = createFileRoute("/campaign/new")({
 
 function NewCampaignPage() {
   const navigate = useNavigate();
+  const { influencer } = useSearch({ from: "/campaign/new" });
+  const { user, loading: authLoading, isAuthed } = useAuth();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(initial);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthed) {
+      const next = `/campaign/new${influencer ? `?influencer=${influencer}` : ""}`;
+      navigate({ to: "/auth", search: { next }, replace: true });
+    }
+  }, [authLoading, isAuthed, influencer, navigate]);
 
   const update = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
@@ -105,11 +118,50 @@ function NewCampaignPage() {
     (step === 2 && form.budget >= 5000 && form.durationDays >= 1 && form.startDate) ||
     (step === 3 && form.deliverables.trim().length >= 10);
 
-  const handleSubmit = () => {
-    toast.success("تمت مراجعة الحملة", {
-      description: `أكمل الدفع لإطلاق حملة "${form.name}".`,
-    });
-    navigate({ to: "/campaign/payment" });
+  const handleSubmit = async () => {
+    if (!user) return;
+    setSubmitting(true);
+    try {
+      const start = form.startDate ? new Date(form.startDate) : new Date();
+      const end = new Date(start);
+      end.setDate(end.getDate() + form.durationDays);
+      const { data: campaign, error } = await supabase
+        .from("campaigns")
+        .insert({
+          advertiser_id: user.id,
+          name: form.name,
+          goal: form.goal,
+          budget: form.budget,
+          status: "draft",
+          start_date: start.toISOString().slice(0, 10),
+          end_date: end.toISOString().slice(0, 10),
+          platforms: form.platforms,
+          content_type: form.contentTypes.join(","),
+          deliverables: form.deliverables,
+          notes: form.notes,
+        })
+        .select("id")
+        .single();
+      if (error || !campaign) throw error ?? new Error("خطأ");
+
+      if (influencer) {
+        await supabase.from("campaign_influencers").insert({
+          campaign_id: campaign.id,
+          influencer_id: influencer,
+          status: "invited",
+        });
+      }
+
+      toast.success("تمت مراجعة الحملة", {
+        description: `أكمل الدفع لإطلاق حملة "${form.name}".`,
+      });
+      navigate({ to: "/campaign/payment", search: { campaign: campaign.id } });
+    } catch (e) {
+      console.error(e);
+      toast.error("تعذّر إنشاء الحملة");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
