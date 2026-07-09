@@ -152,7 +152,7 @@ function ProfilePage() {
       <main className="mx-auto max-w-md px-4">
         {/* CTA buttons */}
         <div className="mt-5 flex items-center gap-2">
-          <button className="flex-1 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90">
+          <button onClick={startCampaign} className="flex-1 rounded-2xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-[var(--shadow-soft)] transition-opacity hover:opacity-90">
             أنشئ حملة مع {inf.name.split(" ")[0]}
           </button>
           <button
