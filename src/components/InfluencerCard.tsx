@@ -1,17 +1,80 @@
-import { BadgeCheck, Bookmark } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { BadgeCheck, Bookmark, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { Influencer } from "@/lib/mock-influencers";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 
 export function InfluencerCard({ influencer }: { influencer: Influencer }) {
+  const { user, isAuthed } = useAuth();
+  const navigate = useNavigate();
+  const [fav, setFav] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    if (!user) {
+      setFav(false);
+      return;
+    }
+    supabase
+      .from("favorites")
+      .select("influencer_id")
+      .eq("user_id", user.id)
+      .eq("influencer_id", influencer.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (alive) setFav(!!data);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user, influencer.id]);
+
+  const toggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthed || !user) {
+      navigate({ to: "/auth", search: { next: "/" } });
+      return;
+    }
+    setBusy(true);
+    if (fav) {
+      const { error } = await supabase
+        .from("favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("influencer_id", influencer.id);
+      if (!error) setFav(false);
+    } else {
+      const { error } = await supabase
+        .from("favorites")
+        .insert({ user_id: user.id, influencer_id: influencer.id });
+      if (error) toast.error("تعذّرت الإضافة");
+      else setFav(true);
+    }
+    setBusy(false);
+  };
+
   return (
     <article className="rounded-2xl bg-surface p-4 shadow-[var(--shadow-soft)]">
       <div className="flex items-start gap-3">
         <button
-          aria-label="حفظ"
-          className="text-muted-foreground hover:text-primary transition-colors"
+          aria-label={fav ? "إزالة من المفضلة" : "حفظ"}
+          onClick={toggle}
+          disabled={busy}
+          className={
+            "transition-colors " +
+            (fav ? "text-primary" : "text-muted-foreground hover:text-primary")
+          }
         >
-          <Bookmark className="size-5" />
+          {busy ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            <Bookmark className={"size-5 " + (fav ? "fill-primary" : "")} />
+          )}
         </button>
 
         <div className="flex-1 text-right">
@@ -21,9 +84,7 @@ export function InfluencerCard({ influencer }: { influencer: Influencer }) {
               <BadgeCheck className="size-4 fill-primary text-primary-foreground" />
             )}
           </div>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            {influencer.category}
-          </p>
+          <p className="mt-0.5 text-sm text-muted-foreground">{influencer.category}</p>
 
           <div className="mt-3 flex items-center justify-end gap-4 text-sm text-foreground">
             {influencer.youtube && (

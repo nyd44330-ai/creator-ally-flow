@@ -12,11 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.payment.success'
+import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
+import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
 
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
@@ -31,6 +36,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const CampaignsRoute = CampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -58,80 +68,133 @@ const CampaignNewRoute = CampaignNewRouteImport.update({
   path: '/campaign/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
+const CampaignPaymentSuccessRoute = CampaignPaymentSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => CampaignPaymentRoute,
+} as any)
+const CampaignPaymentCancelRoute = CampaignPaymentCancelRouteImport.update({
+  id: '/cancel',
+  path: '/cancel',
+  getParentRoute: () => CampaignPaymentRoute,
+} as any)
+const ApiPublicChargilyWebhookRoute =
+  ApiPublicChargilyWebhookRouteImport.update({
+    id: '/api/public/chargily-webhook',
+    path: '/api/public/chargily-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
-  '/campaign/payment': typeof CampaignPaymentRoute
+  '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
+  '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
+    | '/campaign/payment/success'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
+    | '/campaign/payment/success'
   id:
     | '__root__'
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
+    | '/campaign/payment/success'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  AuthRoute: typeof AuthRouteWithChildren
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
-  CampaignPaymentRoute: typeof CampaignPaymentRoute
+  CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
   InfluencerIdRoute: typeof InfluencerIdRoute
+  ApiPublicChargilyWebhookRoute: typeof ApiPublicChargilyWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -155,6 +218,13 @@ declare module '@tanstack/react-router' {
       path: '/campaigns'
       fullPath: '/campaigns'
       preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -192,18 +262,72 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/campaign/payment/success': {
+      id: '/campaign/payment/success'
+      path: '/success'
+      fullPath: '/campaign/payment/success'
+      preLoaderRoute: typeof CampaignPaymentSuccessRouteImport
+      parentRoute: typeof CampaignPaymentRoute
+    }
+    '/campaign/payment/cancel': {
+      id: '/campaign/payment/cancel'
+      path: '/cancel'
+      fullPath: '/campaign/payment/cancel'
+      preLoaderRoute: typeof CampaignPaymentCancelRouteImport
+      parentRoute: typeof CampaignPaymentRoute
+    }
+    '/api/public/chargily-webhook': {
+      id: '/api/public/chargily-webhook'
+      path: '/api/public/chargily-webhook'
+      fullPath: '/api/public/chargily-webhook'
+      preLoaderRoute: typeof ApiPublicChargilyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface CampaignPaymentRouteChildren {
+  CampaignPaymentCancelRoute: typeof CampaignPaymentCancelRoute
+  CampaignPaymentSuccessRoute: typeof CampaignPaymentSuccessRoute
+}
+
+const CampaignPaymentRouteChildren: CampaignPaymentRouteChildren = {
+  CampaignPaymentCancelRoute: CampaignPaymentCancelRoute,
+  CampaignPaymentSuccessRoute: CampaignPaymentSuccessRoute,
+}
+
+const CampaignPaymentRouteWithChildren = CampaignPaymentRoute._addFileChildren(
+  CampaignPaymentRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  AuthRoute: AuthRouteWithChildren,
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
-  CampaignPaymentRoute: CampaignPaymentRoute,
+  CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
   InfluencerIdRoute: InfluencerIdRoute,
+  ApiPublicChargilyWebhookRoute: ApiPublicChargilyWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

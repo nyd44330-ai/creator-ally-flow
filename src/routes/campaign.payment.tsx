@@ -1,5 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import {
   ArrowRight,
   ShieldCheck,
@@ -8,18 +9,22 @@ import {
   Wallet,
   Building2,
   Check,
-  CheckCircle2,
   Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { createChargilyCheckout } from "@/lib/payments.functions";
+
+const searchSchema = z.object({ campaign: z.string().uuid().optional() });
 
 export const Route = createFileRoute("/campaign/payment")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "الدفع — إنشاء حملة" },
-      {
-        name: "description",
-        content: "أكمل الدفع الآمن لإطلاق حملتك وإرسال الدعوات للمؤثرين.",
-      },
+      { name: "description", content: "أكمل الدفع الآمن لإطلاق حملتك عبر Chargily." },
     ],
   }),
   component: PaymentPage,
@@ -33,9 +38,9 @@ const methods: {
   hint: string;
   icon: React.ComponentType<{ className?: string }>;
 }[] = [
-  { id: "edahabia", label: "الذهبية / CIB", hint: "دفع فوري بالبطاقة الجزائرية", icon: Wallet },
-  { id: "card", label: "بطاقة بنكية دولية", hint: "Visa / Mastercard", icon: CreditCard },
-  { id: "bank", label: "تحويل بنكي", hint: "تأكيد خلال 24 ساعة", icon: Building2 },
+  { id: "edahabia", label: "الذهبية (EDAHABIA)", hint: "دفع فوري ببطاقة الجزائر", icon: Wallet },
+  { id: "card", label: "CIB / بطاقة بنكية", hint: "بطاقات CIB الجزائرية", icon: CreditCard },
+  { id: "bank", label: "تحويل بنكي", hint: "تأكيد يدوي خلال 24 ساعة", icon: Building2 },
 ];
 
 function formatDZD(n: number) {
@@ -44,54 +49,101 @@ function formatDZD(n: number) {
 
 function PaymentPage() {
   const navigate = useNavigate();
+  const { campaign } = useSearch({ from: "/campaign/payment" });
+  const { user, loading: authLoading, isAuthed } = useAuth();
   const [method, setMethod] = useState<Method>("edahabia");
-  const [state, setState] = useState<"idle" | "processing" | "done">("idle");
+  const [processing, setProcessing] = useState(false);
+  const [campaignData, setCampaignData] = useState<{ name: string; budget: number } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const createCheckout = useServerFn(createChargilyCheckout);
 
-  const campaignAmount = 50000;
-  const fee = Math.round(campaignAmount * 0.05);
-  const tax = Math.round((campaignAmount + fee) * 0.09);
-  const total = campaignAmount + fee + tax;
+  useEffect(() => {
+    if (!authLoading && !isAuthed) {
+      navigate({ to: "/auth", search: { next: `/campaign/payment?campaign=${campaign ?? ""}` } });
+    }
+  }, [authLoading, isAuthed, campaign, navigate]);
+
+  useEffect(() => {
+    if (!user || !campaign) {
+      setLoading(false);
+      return;
+    }
+    supabase
+      .from("campaigns")
+      .select("name, budget")
+      .eq("id", campaign)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setCampaignData(data);
+        setLoading(false);
+      });
+  }, [user, campaign]);
+
+  const amount = campaignData?.budget ?? 0;
+  const fee = Math.round(amount * 0.05);
+  const tax = Math.round((amount + fee) * 0.09);
+  const total = amount + fee + tax;
 
   const summary = useMemo(
     () => [
-      { k: "قيمة الحملة", v: formatDZD(campaignAmount) },
+      { k: "قيمة الحملة", v: formatDZD(amount) },
       { k: "عمولة المنصة (5%)", v: formatDZD(fee) },
       { k: "الرسوم (9%)", v: formatDZD(tax) },
     ],
-    [campaignAmount, fee, tax],
+    [amount, fee, tax],
   );
 
-  const handlePay = () => {
-    setState("processing");
-    setTimeout(() => setState("done"), 1400);
-    setTimeout(() => navigate({ to: "/messages" }), 2600);
+  const handlePay = async () => {
+    if (!campaign) {
+      toast.error("لا توجد حملة للدفع");
+      return;
+    }
+    setProcessing(true);
+    try {
+      const res = await createCheckout({ data: { campaignId: campaign, method } });
+      window.location.href = res.checkoutUrl;
+    } catch (e) {
+      console.error(e);
+      toast.error("تعذّر بدء الدفع، حاول مجدداً");
+      setProcessing(false);
+    }
   };
 
-  if (state === "done") {
-    return <SuccessScreen />;
+  if (loading || authLoading) {
+    return (
+      <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!campaign || !campaignData) {
+    return (
+      <div dir="rtl" className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background p-6 text-center">
+        <p className="text-sm text-muted-foreground">لا توجد حملة معلّقة للدفع</p>
+        <Link to="/campaigns" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+          العودة إلى حملاتي
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-32">
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
-          <Link
-            to="/campaign/new"
-            className="rounded-full p-2 text-muted-foreground hover:bg-muted"
-            aria-label="رجوع"
-          >
+          <Link to="/campaigns" className="rounded-full p-2 text-muted-foreground hover:bg-muted" aria-label="رجوع">
             <ArrowRight className="size-5" />
           </Link>
-          <h1 className="flex-1 text-center text-base font-bold text-foreground">
-            الدفع الآمن
-          </h1>
+          <h1 className="flex-1 text-center text-base font-bold text-foreground">الدفع الآمن</h1>
           <span className="w-9" />
         </div>
       </header>
 
       <main className="mx-auto max-w-md space-y-6 px-4 pt-5">
         <section className="rounded-2xl border border-border bg-surface p-4 shadow-soft">
-          <h2 className="mb-3 text-sm font-bold text-foreground">ملخص الدفع</h2>
+          <h2 className="mb-1 text-sm font-bold text-foreground">{campaignData.name}</h2>
+          <p className="mb-3 text-xs text-muted-foreground">ملخص الدفع</p>
           <dl className="space-y-2 text-sm">
             {summary.map((r) => (
               <div key={r.k} className="flex justify-between gap-3">
@@ -119,31 +171,23 @@ function PaymentPage() {
                   type="button"
                   onClick={() => setMethod(m.id)}
                   className={`flex w-full items-center gap-3 rounded-xl border p-3 text-right transition ${
-                    active
-                      ? "border-primary bg-primary-soft shadow-soft"
-                      : "border-border bg-surface hover:border-primary/40"
+                    active ? "border-primary bg-primary-soft shadow-soft" : "border-border bg-surface hover:border-primary/40"
                   }`}
                 >
                   <span
                     className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                      active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                     }`}
                   >
                     <m.icon className="size-5" />
                   </span>
                   <span className="flex-1">
-                    <span className="block text-sm font-semibold text-foreground">
-                      {m.label}
-                    </span>
+                    <span className="block text-sm font-semibold text-foreground">{m.label}</span>
                     <span className="block text-xs text-muted-foreground">{m.hint}</span>
                   </span>
                   <span
                     className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                      active
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border"
+                      active ? "border-primary bg-primary text-primary-foreground" : "border-border"
                     }`}
                   >
                     {active && <Check className="size-3" />}
@@ -159,10 +203,9 @@ function PaymentPage() {
             <ShieldCheck className="size-5" />
           </span>
           <div className="text-sm leading-relaxed text-foreground">
-            <p className="mb-1 font-bold text-primary">دفع محفوظ بأمان</p>
+            <p className="mb-1 font-bold text-primary">دفع محفوظ عبر Chargily</p>
             <p className="text-muted-foreground">
-              سيتم الاحتفاظ بمبلغ الدفع لدى المنصة بشكل آمن، ولن يُحوَّل إلى المؤثر إلا
-              بعد قبوله للحملة وانطلاق التعاون رسمياً.
+              سيتم الاحتفاظ بالمبلغ لدى المنصة بشكل آمن، ولن يُحوَّل للمؤثر إلا بعد قبوله للحملة.
             </p>
           </div>
         </section>
@@ -172,48 +215,23 @@ function PaymentPage() {
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
           <button
             type="button"
-            disabled={state === "processing"}
+            disabled={processing}
             onClick={handlePay}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-card transition hover:opacity-95 disabled:opacity-60"
           >
-            {state === "processing" ? (
+            {processing ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
-                جاري معالجة الدفع...
+                جارٍ التحويل إلى Chargily...
               </>
             ) : (
               <>
                 <Lock className="size-4" />
-                ادفع وأنشئ الحملة · {formatDZD(total)}
+                ادفع {formatDZD(total)}
               </>
             )}
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SuccessScreen() {
-  return (
-    <div
-      dir="rtl"
-      className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center"
-    >
-      <div className="relative mb-6">
-        <span className="absolute inset-0 animate-ping rounded-full bg-success/20" />
-        <span className="relative flex size-20 items-center justify-center rounded-full bg-success text-success-foreground shadow-card">
-          <CheckCircle2 className="size-10" />
-        </span>
-      </div>
-      <h1 className="mb-2 text-xl font-bold text-foreground">تم إنشاء الحملة بنجاح</h1>
-      <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground">
-        أُرسلت الدعوات إلى المؤثرين المختارين وفُتحت محادثة معهم. سيتم توجيهك إلى صفحة
-        الرسائل...
-      </p>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Loader2 className="size-3 animate-spin" />
-        تحويل...
       </div>
     </div>
   );
