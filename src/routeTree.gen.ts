@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
@@ -64,14 +65,20 @@ const CampaignNewRoute = CampaignNewRouteImport.update({
   path: '/campaign/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
@@ -79,10 +86,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
@@ -91,10 +99,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRoute
   '/influencer/$id': typeof InfluencerIdRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/messages'
+    | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
@@ -138,7 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
@@ -212,13 +224,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
+
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
