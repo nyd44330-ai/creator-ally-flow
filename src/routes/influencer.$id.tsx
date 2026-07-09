@@ -56,6 +56,13 @@ const platformIcon = {
 
 function ProfilePage() {
   const { influencer: inf } = Route.useLoaderData() as { influencer: Influencer };
+  const { isAuthed } = useAuth();
+  const navigate = useNavigate();
+  const startCampaign = () => {
+    const next = `/campaign/new?influencer=${inf.id}`;
+    if (!isAuthed) navigate({ to: "/auth", search: { next } });
+    else navigate({ to: "/campaign/new", search: { influencer: inf.id } });
+  };
 
   const socials = [
     inf.tiktokUrl && {
