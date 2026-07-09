@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
@@ -31,6 +32,11 @@ const FavoritesRoute = FavoritesRouteImport.update({
 const CampaignsRoute = CampaignsRouteImport.update({
   id: '/campaigns',
   path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountRoute = AccountRouteImport.update({
@@ -62,6 +68,7 @@ const CampaignNewRoute = CampaignNewRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
+  '/auth': typeof AuthRoute
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/account'
+    | '/auth'
     | '/campaigns'
     | '/favorites'
     | '/messages'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
+  AuthRoute: typeof AuthRoute
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/campaigns'
       fullPath: '/campaigns'
       preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
+  AuthRoute: AuthRoute,
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
