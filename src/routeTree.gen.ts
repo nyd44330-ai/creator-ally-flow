@@ -20,6 +20,7 @@ import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.payment.success'
+import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
 
 const MessagesRoute = MessagesRouteImport.update({
@@ -77,6 +78,11 @@ const CampaignPaymentSuccessRoute = CampaignPaymentSuccessRouteImport.update({
   path: '/success',
   getParentRoute: () => CampaignPaymentRoute,
 } as any)
+const CampaignPaymentCancelRoute = CampaignPaymentCancelRouteImport.update({
+  id: '/cancel',
+  path: '/cancel',
+  getParentRoute: () => CampaignPaymentRoute,
+} as any)
 const ApiPublicChargilyWebhookRoute =
   ApiPublicChargilyWebhookRouteImport.update({
     id: '/api/public/chargily-webhook',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesByTo {
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRoutesById {
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
+  '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
 }
 export interface FileRouteTypes {
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
     | '/campaign/payment/success'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
     | '/campaign/payment/success'
   id:
     | '__root__'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/api/public/chargily-webhook'
+    | '/campaign/payment/cancel'
     | '/campaign/payment/success'
   fileRoutesById: FileRoutesById
 }
@@ -264,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CampaignPaymentSuccessRouteImport
       parentRoute: typeof CampaignPaymentRoute
     }
+    '/campaign/payment/cancel': {
+      id: '/campaign/payment/cancel'
+      path: '/cancel'
+      fullPath: '/campaign/payment/cancel'
+      preLoaderRoute: typeof CampaignPaymentCancelRouteImport
+      parentRoute: typeof CampaignPaymentRoute
+    }
     '/api/public/chargily-webhook': {
       id: '/api/public/chargily-webhook'
       path: '/api/public/chargily-webhook'
@@ -285,10 +304,12 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface CampaignPaymentRouteChildren {
+  CampaignPaymentCancelRoute: typeof CampaignPaymentCancelRoute
   CampaignPaymentSuccessRoute: typeof CampaignPaymentSuccessRoute
 }
 
 const CampaignPaymentRouteChildren: CampaignPaymentRouteChildren = {
+  CampaignPaymentCancelRoute: CampaignPaymentCancelRoute,
   CampaignPaymentSuccessRoute: CampaignPaymentSuccessRoute,
 }
 

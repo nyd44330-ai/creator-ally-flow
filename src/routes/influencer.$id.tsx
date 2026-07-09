@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BadgeCheck,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import { getInfluencerById, type Influencer, type PortfolioItem } from "@/lib/mock-influencers";
+import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/influencer/$id")({
   loader: ({ params }) => {
