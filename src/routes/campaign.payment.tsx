@@ -73,8 +73,13 @@ function PaymentPage() {
       .select("name, budget")
       .eq("id", campaign)
       .maybeSingle()
-      .then(({ data }) => {
-        if (data) setCampaignData(data);
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching campaign:", error);
+          toast.error("تعذّر تحميل بيانات الحملة");
+        } else if (data) {
+          setCampaignData(data);
+        }
         setLoading(false);
       });
   }, [user, campaign]);
