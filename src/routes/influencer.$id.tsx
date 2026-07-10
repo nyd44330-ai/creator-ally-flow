@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowRight,
   BadgeCheck,
@@ -8,27 +8,19 @@ import {
   Languages,
   Star,
   Play,
+  Loader2,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
-import { getInfluencerById, type Influencer, type PortfolioItem } from "@/lib/mock-influencers";
+import { useQuery } from "@tanstack/react-query";
+import { fetchInfluencerById, type Influencer, type PortfolioItem } from "@/lib/mock-influencers";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/influencer/$id")({
-  loader: ({ params }) => {
-    const influencer = getInfluencerById(params.id);
-    if (!influencer) throw notFound();
-    return { influencer };
-  },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.influencer.name} — الملف الشخصي` },
-          {
-            name: "description",
-            content: loaderData.influencer.bio?.slice(0, 150) ?? "",
-          },
-        ]
-      : [],
+  head: () => ({
+    meta: [
+      { title: "الملف الشخصي — منصة التسويق بالمؤثرين" },
+      { name: "description", content: "استعرض بيانات المؤثر وأعماله وأسعاره." },
+    ],
   }),
   notFoundComponent: () => (
     <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background p-6 text-center">
@@ -55,14 +47,39 @@ const platformIcon = {
 } as const;
 
 function ProfilePage() {
-  const { influencer: inf } = Route.useLoaderData() as { influencer: Influencer };
+  const { id } = Route.useParams();
+  const { data: inf, isLoading, error } = useQuery({
+    queryKey: ["influencer", id],
+    queryFn: () => fetchInfluencerById(id),
+  });
   const { isAuthed } = useAuth();
   const navigate = useNavigate();
+
+  if (isLoading) {
+    return (
+      <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+  if (error || !inf) {
+    return (
+      <div dir="rtl" className="flex min-h-screen items-center justify-center bg-background p-6 text-center">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">المؤثر غير موجود</h1>
+          <Link to="/" className="mt-3 inline-block text-primary">العودة للصفحة الرئيسية</Link>
+        </div>
+      </div>
+    );
+  }
+
   const startCampaign = () => {
     const next = `/campaign/new?influencer=${inf.id}`;
     if (!isAuthed) navigate({ to: "/auth", search: { next } });
     else navigate({ to: "/campaign/new", search: { influencer: inf.id } });
   };
+
+
 
   const socials = [
     inf.tiktokUrl && {
