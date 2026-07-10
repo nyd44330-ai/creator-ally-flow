@@ -1,4 +1,4 @@
-import { allInfluencers, featuredInfluencers, type Influencer } from "./mock-influencers";
+import type { Influencer } from "./mock-influencers";
 
 export type CampaignStatus = "draft" | "pending" | "active" | "completed" | "cancelled";
 
@@ -17,7 +17,7 @@ export type Campaign = {
   createdAt: string;
 };
 
-const all = [...featuredInfluencers, ...allInfluencers];
+
 
 export const mockCampaigns: Campaign[] = [
   {
