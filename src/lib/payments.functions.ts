@@ -13,6 +13,15 @@ type ChargilyCheckoutResponse = {
   status?: string;
 };
 
+function getChargilyBaseUrl(apiKey: string) {
+  const configuredMode = process.env.CHARGILY_MODE?.toLowerCase();
+  const normalizedKey = apiKey.trim();
+  const isTestKey = normalizedKey.toLowerCase().startsWith("test_");
+  const useTestMode = configuredMode === "test" || configuredMode === "sandbox" || isTestKey;
+
+  return useTestMode ? "https://pay.chargily.net/test/api/v2" : "https://pay.chargily.net/api/v2";
+}
+
 export const createChargilyCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => CreateCheckoutInput.parse(input))
@@ -32,8 +41,9 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
     const tax = Math.round((amount + fee) * 0.09);
     const total = amount + fee + tax;
 
-    const apiKey = process.env.CHARGILY_API_SECRET_KEY;
+    const apiKey = process.env.CHARGILY_API_SECRET_KEY?.trim();
     if (!apiKey) throw new Error("Chargily غير مفعّل");
+    const chargilyBaseUrl = getChargilyBaseUrl(apiKey);
 
     const origin = process.env.APP_URL ?? "https://creator-ally-flow.lovable.app";
 
@@ -73,7 +83,7 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
       payment_method: data.method === "edahabia" ? "edahabia" : "cib",
     };
 
-    const res = await fetch("https://pay.chargily.net/api/v2/checkouts", {
+    const res = await fetch(`${chargilyBaseUrl}/checkouts`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -86,6 +96,9 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
       const txt = await res.text();
       console.error("Chargily error", res.status, txt);
       await supabase.from("payments").update({ status: "failed" }).eq("id", payment.id);
+      if (res.status === 401) {
+        throw new Error("مفتاح Chargily لا يطابق وضع الدفع الحالي");
+      }
       throw new Error("تعذّر إنشاء عملية الدفع");
     }
 
