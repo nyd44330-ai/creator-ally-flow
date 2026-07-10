@@ -37,7 +37,12 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
     const configuredMode = process.env.CHARGILY_MODE?.toLowerCase();
     const isTestKey = apiKey.toLowerCase().startsWith("test_");
     const useTestMode = configuredMode === "test" || configuredMode === "sandbox" || isTestKey;
-    const chargilyBaseUrl = useTestMode ? "https://pay.chargily.net/test/api/v2" : "https://pay.chargily.net/api/v2";
+    const useLiveMode = configuredMode === "live";
+    const chargilyBaseUrls = useTestMode
+      ? ["https://pay.chargily.net/test/api/v2"]
+      : useLiveMode
+        ? ["https://pay.chargily.net/api/v2"]
+        : ["https://pay.chargily.net/api/v2", "https://pay.chargily.net/test/api/v2"];
 
     const origin = "https://creator-ally-flow.lovable.app";
 
@@ -77,26 +82,38 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
       payment_method: data.method === "edahabia" ? "edahabia" : "cib",
     };
 
-    const res = await fetch(`${chargilyBaseUrl}/checkouts`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+    let checkout: ChargilyCheckoutResponse | null = null;
+    let lastErrorStatus: number | null = null;
+    let lastErrorText = "";
 
-    if (!res.ok) {
-      const txt = await res.text();
-      console.error("Chargily error", res.status, txt);
+    for (const baseUrl of chargilyBaseUrls) {
+      const res = await fetch(`${baseUrl}/checkouts`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        checkout = (await res.json()) as ChargilyCheckoutResponse;
+        break;
+      }
+
+      lastErrorStatus = res.status;
+      lastErrorText = await res.text();
+      if (res.status !== 401) break;
+    }
+
+    if (!checkout) {
+      console.error("Chargily error", lastErrorStatus, lastErrorText);
       await supabase.from("payments").update({ status: "failed" }).eq("id", payment.id);
-      if (res.status === 401) {
-        throw new Error("مفتاح Chargily لا يطابق وضع الدفع الحالي");
+      if (lastErrorStatus === 401) {
+        throw new Error("مفتاح Chargily غير صحيح أو لا يطابق وضع Test/Live");
       }
       throw new Error("تعذّر إنشاء عملية الدفع");
     }
-
-    const checkout = (await res.json()) as ChargilyCheckoutResponse;
 
     await supabase
       .from("payments")
