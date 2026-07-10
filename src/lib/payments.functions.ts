@@ -35,9 +35,7 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
     const apiKey = process.env.CHARGILY_API_SECRET_KEY;
     if (!apiKey) throw new Error("Chargily غير مفعّل");
 
-    const origin =
-      process.env.APP_URL ??
-      `https://project--${process.env.SUPABASE_PROJECT_ID ?? "app"}.lovable.app`;
+    const origin = process.env.APP_URL ?? "https://creator-ally-flow.lovable.app";
 
     const successUrl = `${origin}/campaign/payment/success?campaign=${campaign.id}`;
     const failureUrl = `${origin}/campaign/payment/cancel?campaign=${campaign.id}`;
