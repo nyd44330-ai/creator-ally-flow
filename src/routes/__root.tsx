@@ -79,19 +79,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "منصة التسويق بالمؤثرين" },
+      { title: "اكتشف المؤثرين — منصة التسويق بالمؤثرين" },
       {
         name: "description",
         content:
-          "منصة عربية لربط العلامات التجارية بالمؤثرين — اكتشف، تواصل، أطلق حملاتك.",
+          "تصفّح وتواصل مع أفضل المؤثرين في الجزائر والوطن العربي عبر منصة تسويق ذكية.",
       },
-      { property: "og:title", content: "منصة التسويق بالمؤثرين" },
+      { property: "og:title", content: "اكتشف المؤثرين — منصة التسويق بالمؤثرين" },
       {
         property: "og:description",
-        content: "اكتشف المؤثرين وأطلق حملاتك التسويقية بسهولة.",
+        content: "تصفّح وتواصل مع أفضل المؤثرين في الجزائر والوطن العربي عبر منصة تسويق ذكية.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "اكتشف المؤثرين — منصة التسويق بالمؤثرين" },
+      { name: "twitter:description", content: "تصفّح وتواصل مع أفضل المؤثرين في الجزائر والوطن العربي عبر منصة تسويق ذكية." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02f224c3-c9f6-4569-9526-5b2cee4a4c7c/id-preview-c4ef2acb--f36a9eaa-b9cc-43d0-ae02-813a767df513.lovable.app-1783607801198.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/02f224c3-c9f6-4569-9526-5b2cee4a4c7c/id-preview-c4ef2acb--f36a9eaa-b9cc-43d0-ae02-813a767df513.lovable.app-1783607801198.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
