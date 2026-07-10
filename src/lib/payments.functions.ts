@@ -13,15 +13,6 @@ type ChargilyCheckoutResponse = {
   status?: string;
 };
 
-function getChargilyBaseUrl(apiKey: string) {
-  const configuredMode = process.env.CHARGILY_MODE?.toLowerCase();
-  const normalizedKey = apiKey.trim();
-  const isTestKey = normalizedKey.toLowerCase().startsWith("test_");
-  const useTestMode = configuredMode === "test" || configuredMode === "sandbox" || isTestKey;
-
-  return useTestMode ? "https://pay.chargily.net/test/api/v2" : "https://pay.chargily.net/api/v2";
-}
-
 export const createChargilyCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => CreateCheckoutInput.parse(input))
@@ -43,9 +34,12 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
 
     const apiKey = process.env.CHARGILY_API_SECRET_KEY?.trim();
     if (!apiKey) throw new Error("Chargily غير مفعّل");
-    const chargilyBaseUrl = getChargilyBaseUrl(apiKey);
+    const configuredMode = process.env.CHARGILY_MODE?.toLowerCase();
+    const isTestKey = apiKey.toLowerCase().startsWith("test_");
+    const useTestMode = configuredMode === "test" || configuredMode === "sandbox" || isTestKey;
+    const chargilyBaseUrl = useTestMode ? "https://pay.chargily.net/test/api/v2" : "https://pay.chargily.net/api/v2";
 
-    const origin = process.env.APP_URL ?? "https://creator-ally-flow.lovable.app";
+    const origin = "https://creator-ally-flow.lovable.app";
 
     const successUrl = `${origin}/campaign/payment/success?campaign=${campaign.id}`;
     const failureUrl = `${origin}/campaign/payment/cancel?campaign=${campaign.id}`;
