@@ -122,3 +122,116 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
 
     return { checkoutUrl: checkout.checkout_url };
   });
+
+const FinalizeInput = z.object({ campaignId: z.string().uuid() });
+
+export const finalizeCampaignPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => FinalizeInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: campaign } = await supabase
+      .from("campaigns")
+      .select("id, name, status, advertiser_id")
+      .eq("id", data.campaignId)
+      .maybeSingle();
+    if (!campaign) throw new Error("الحملة غير موجودة");
+    if (campaign.advertiser_id !== userId) throw new Error("غير مصرح");
+
+    // Already finalized
+    if (campaign.status === "active") {
+      return { status: "active" as const };
+    }
+
+    // Latest payment for this campaign
+    const { data: payment } = await supabase
+      .from("payments")
+      .select("id, status, provider_ref")
+      .eq("campaign_id", data.campaignId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!payment) return { status: "pending" as const };
+
+    let paid = payment.status === "paid";
+
+    // Verify against Chargily when we have a provider ref
+    if (!paid && payment.provider_ref) {
+      const apiKey = process.env.CHARGILY_API_SECRET_KEY?.trim();
+      if (apiKey) {
+        const configuredMode = process.env.CHARGILY_MODE?.toLowerCase();
+        const isTestKey = apiKey.toLowerCase().startsWith("test_");
+        const useTestMode = configuredMode === "test" || configuredMode === "sandbox" || isTestKey;
+        const useLiveMode = configuredMode === "live";
+        const bases = useTestMode
+          ? ["https://pay.chargily.net/test/api/v2"]
+          : useLiveMode
+            ? ["https://pay.chargily.net/api/v2"]
+            : ["https://pay.chargily.net/api/v2", "https://pay.chargily.net/test/api/v2"];
+
+        for (const base of bases) {
+          const res = await fetch(`${base}/checkouts/${payment.provider_ref}`, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+          });
+          if (res.ok) {
+            const co = (await res.json()) as { status?: string };
+            if (co.status === "paid") paid = true;
+            break;
+          }
+          if (res.status !== 401) break;
+        }
+      }
+    }
+
+    if (!paid) return { status: "pending" as const };
+
+    // Mark payment paid
+    await supabase.from("payments").update({ status: "paid" }).eq("id", payment.id);
+
+    // Activate campaign (use admin to bypass any status update policy edge cases)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("campaigns").update({ status: "active" }).eq("id", campaign.id);
+
+    // Create conversations for invited influencers (idempotent)
+    const { data: cis } = await supabaseAdmin
+      .from("campaign_influencers")
+      .select("influencer_id")
+      .eq("campaign_id", campaign.id);
+
+    if (cis && cis.length > 0) {
+      for (const ci of cis) {
+        const { data: existing } = await supabaseAdmin
+          .from("conversations")
+          .select("id")
+          .eq("advertiser_id", campaign.advertiser_id)
+          .eq("influencer_id", ci.influencer_id)
+          .eq("campaign_id", campaign.id)
+          .maybeSingle();
+        if (existing) continue;
+
+        const { data: conv } = await supabaseAdmin
+          .from("conversations")
+          .insert({
+            advertiser_id: campaign.advertiser_id,
+            influencer_id: ci.influencer_id,
+            campaign_id: campaign.id,
+            last_message: `دعوة للانضمام إلى حملة: ${campaign.name}`,
+            last_message_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        if (conv) {
+          await supabaseAdmin.from("messages").insert({
+            conversation_id: conv.id,
+            sender: "system",
+            body: `تم إنشاء الحملة "${campaign.name}" ودعوة المؤثر للانضمام.`,
+          });
+        }
+      }
+    }
+
+    return { status: "active" as const };
+  });
