@@ -1,14 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Plus, Search, Calendar, Wallet, TrendingUp, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search, Calendar, Wallet, TrendingUp, Users, Loader2 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import { BottomNav } from "@/components/BottomNav";
-import {
-  mockCampaigns,
-  statusLabel,
-  type Campaign,
-  type CampaignStatus,
-} from "@/lib/mock-campaigns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth";
+import { statusLabel, type CampaignStatus } from "@/lib/mock-campaigns";
 
 export const Route = createFileRoute("/campaigns")({
   component: CampaignsPage,
@@ -25,15 +22,24 @@ const filters: { key: FilterKey; label: string }[] = [
   { key: "cancelled", label: "ملغاة" },
 ];
 
+type Row = {
+  id: string;
+  name: string;
+  goal: string | null;
+  status: CampaignStatus;
+  budget: number;
+  spent: number;
+  start_date: string | null;
+  end_date: string | null;
+  platforms: string[];
+};
+
 function formatDZD(n: number) {
   return `${n.toLocaleString("ar-DZ")} دج`;
 }
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ar-DZ", {
-    day: "numeric",
-    month: "short",
-  });
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("ar-DZ", { day: "numeric", month: "short" });
 }
 
 const statusStyle: Record<CampaignStatus, string> = {
@@ -45,30 +51,50 @@ const statusStyle: Record<CampaignStatus, string> = {
 };
 
 function CampaignsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const filtered = useMemo(() => {
-    return mockCampaigns.filter((c) => {
-      if (filter !== "all" && c.status !== filter) return false;
-      if (query.trim()) {
-        const q = query.trim().toLowerCase();
-        if (
-          !c.name.toLowerCase().includes(q) &&
-          !c.goal.toLowerCase().includes(q)
-        )
-          return false;
-      }
-      return true;
-    });
-  }, [query, filter]);
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    supabase
+      .from("campaigns")
+      .select("id,name,goal,status,budget,spent,start_date,end_date,platforms")
+      .eq("advertiser_id", user.id)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error(error);
+        setRows((data as Row[] | null) ?? []);
+        setLoading(false);
+      });
+  }, [user]);
+
+  const filtered = useMemo(
+    () =>
+      rows.filter((c) => {
+        if (filter !== "all" && c.status !== filter) return false;
+        if (query.trim()) {
+          const q = query.trim().toLowerCase();
+          if (!c.name.toLowerCase().includes(q) && !(c.goal ?? "").toLowerCase().includes(q))
+            return false;
+        }
+        return true;
+      }),
+    [rows, query, filter],
+  );
 
   const counts = useMemo(() => {
-    const total = mockCampaigns.length;
-    const active = mockCampaigns.filter((c) => c.status === "active").length;
-    const totalBudget = mockCampaigns.reduce((s, c) => s + c.budget, 0);
+    const total = rows.length;
+    const active = rows.filter((c) => c.status === "active").length;
+    const totalBudget = rows.reduce((s, c) => s + c.budget, 0);
     return { total, active, totalBudget };
-  }, []);
+  }, [rows]);
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-28">
@@ -76,9 +102,7 @@ function CampaignsPage() {
         <div className="mx-auto flex max-w-md items-center justify-between px-4 pt-6 pb-3">
           <div>
             <h1 className="text-lg font-bold text-foreground">حملاتي</h1>
-            <p className="text-xs text-muted-foreground">
-              تابع أداء جميع حملاتك
-            </p>
+            <p className="text-xs text-muted-foreground">تابع أداء جميع حملاتك</p>
           </div>
           <Link
             to="/campaign/new"
@@ -91,16 +115,8 @@ function CampaignsPage() {
 
         <div className="mx-auto max-w-md px-4">
           <div className="grid grid-cols-3 gap-2">
-            <StatCard
-              icon={<TrendingUp className="size-4" />}
-              label="نشطة"
-              value={String(counts.active)}
-            />
-            <StatCard
-              icon={<Users className="size-4" />}
-              label="الإجمالي"
-              value={String(counts.total)}
-            />
+            <StatCard icon={<TrendingUp className="size-4" />} label="نشطة" value={String(counts.active)} />
+            <StatCard icon={<Users className="size-4" />} label="الإجمالي" value={String(counts.total)} />
             <StatCard
               icon={<Wallet className="size-4" />}
               label="الميزانية"
@@ -126,9 +142,7 @@ function CampaignsPage() {
             {filters.map((f) => {
               const active = filter === f.key;
               const count =
-                f.key === "all"
-                  ? mockCampaigns.length
-                  : mockCampaigns.filter((c) => c.status === f.key).length;
+                f.key === "all" ? rows.length : rows.filter((c) => c.status === f.key).length;
               return (
                 <button
                   key={f.key}
@@ -149,11 +163,13 @@ function CampaignsPage() {
       </header>
 
       <main className="mx-auto max-w-md px-4 pt-1">
-        {filtered.length === 0 ? (
+        {loading || authLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-primary" />
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              لا توجد حملات مطابقة.
-            </p>
+            <p className="text-sm text-muted-foreground">لا توجد حملات مطابقة.</p>
             <Link
               to="/campaign/new"
               className="mt-4 inline-flex items-center gap-1 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
@@ -165,7 +181,7 @@ function CampaignsPage() {
         ) : (
           <div className="flex flex-col gap-3">
             {filtered.map((c) => (
-              <CampaignCard key={c.id} campaign={c} />
+              <CampaignCard key={c.id} c={c} />
             ))}
           </div>
         )}
@@ -176,108 +192,53 @@ function CampaignsPage() {
   );
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
+function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-2.5">
       <div className="flex items-center gap-1 text-primary">
         {icon}
-        <span className="text-[10px] font-medium text-muted-foreground">
-          {label}
-        </span>
+        <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
       </div>
       <div className="mt-1 text-base font-bold text-foreground">{value}</div>
     </div>
   );
 }
 
-function CampaignCard({ campaign }: { campaign: Campaign }) {
+function CampaignCard({ c }: { c: Row }) {
   return (
     <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-bold text-foreground">
-            {campaign.name}
-          </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">{campaign.goal}</p>
+          <h3 className="truncate text-sm font-bold text-foreground">{c.name}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{c.goal ?? "—"}</p>
         </div>
         <span
-          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${statusStyle[campaign.status]}`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${statusStyle[c.status]}`}
         >
-          {statusLabel[campaign.status]}
+          {statusLabel[c.status]}
         </span>
       </div>
 
       <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
           <Calendar className="size-3.5" />
-          {formatDate(campaign.startDate)} - {formatDate(campaign.endDate)}
+          {formatDate(c.start_date)} - {formatDate(c.end_date)}
         </span>
         <span className="flex items-center gap-1">
-          {campaign.platforms.includes("tiktok") && (
-            <SiTiktok className="size-3" />
-          )}
-          {campaign.platforms.includes("instagram") && (
-            <SiInstagram className="size-3 text-pink-500" />
-          )}
-          {campaign.platforms.includes("youtube") && (
-            <SiYoutube className="size-3 text-red-500" />
-          )}
+          {c.platforms.includes("tiktok") && <SiTiktok className="size-3" />}
+          {c.platforms.includes("instagram") && <SiInstagram className="size-3 text-pink-500" />}
+          {c.platforms.includes("youtube") && <SiYoutube className="size-3 text-red-500" />}
         </span>
       </div>
-
-      {campaign.status !== "draft" && campaign.status !== "cancelled" && (
-        <div className="mt-3">
-          <div className="flex justify-between text-[11px] text-muted-foreground">
-            <span>التقدّم</span>
-            <span className="font-bold text-foreground">
-              {campaign.progress}%
-            </span>
-          </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{ width: `${campaign.progress}%` }}
-            />
-          </div>
-        </div>
-      )}
 
       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
         <div>
           <p className="text-[10px] text-muted-foreground">أُنفق / الميزانية</p>
           <p className="text-xs font-bold text-foreground">
-            {formatDZD(campaign.spent)}{" "}
-            <span className="text-muted-foreground font-normal">
-              / {formatDZD(campaign.budget)}
-            </span>
+            {formatDZD(c.spent)}{" "}
+            <span className="text-muted-foreground font-normal">/ {formatDZD(c.budget)}</span>
           </p>
         </div>
-
-        {campaign.influencers.length > 0 && (
-          <div className="flex -space-x-2 space-x-reverse">
-            {campaign.influencers.slice(0, 3).map((inf) => (
-              <img
-                key={inf.id}
-                src={inf.image}
-                alt={inf.name}
-                className="size-7 rounded-full border-2 border-surface object-cover"
-              />
-            ))}
-            {campaign.influencers.length > 3 && (
-              <div className="flex size-7 items-center justify-center rounded-full border-2 border-surface bg-muted text-[10px] font-bold text-muted-foreground">
-                +{campaign.influencers.length - 3}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
