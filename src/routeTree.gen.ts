@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as CreatorRouteImport } from './routes/creator'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
@@ -31,6 +32,11 @@ const MessagesRoute = MessagesRouteImport.update({
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorRoute = CreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CampaignsRoute = CampaignsRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
+  '/creator': typeof CreatorRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
+  '/creator': typeof CreatorRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
+  '/creator': typeof CreatorRoute
   '/favorites': typeof FavoritesRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/campaigns'
+    | '/creator'
     | '/favorites'
     | '/messages'
     | '/auth/callback'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/campaigns'
+    | '/creator'
     | '/favorites'
     | '/messages'
     | '/auth/callback'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/auth'
     | '/campaigns'
+    | '/creator'
     | '/favorites'
     | '/messages'
     | '/auth/callback'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRouteWithChildren
   CampaignsRoute: typeof CampaignsRoute
+  CreatorRoute: typeof CreatorRoute
   FavoritesRoute: typeof FavoritesRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       path: '/favorites'
       fullPath: '/favorites'
       preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator': {
+      id: '/creator'
+      path: '/creator'
+      fullPath: '/creator'
+      preLoaderRoute: typeof CreatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/campaigns': {
@@ -322,6 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AuthRoute: AuthRouteWithChildren,
   CampaignsRoute: CampaignsRoute,
+  CreatorRoute: CreatorRoute,
   FavoritesRoute: FavoritesRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
