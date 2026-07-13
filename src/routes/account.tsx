@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Pencil,
@@ -22,9 +22,12 @@ import {
   Camera,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
+import { useMyInfluencerProfile } from "@/lib/creator-hooks";
+
 
 export const Route = createFileRoute("/account")({
   head: () => ({
