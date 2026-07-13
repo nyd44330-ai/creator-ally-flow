@@ -75,6 +75,8 @@ function AccountPage() {
   const [business, setBusiness] = useState(initialBusiness);
   const [editProfile, setEditProfile] = useState(false);
   const [editBusiness, setEditBusiness] = useState(false);
+  const creatorQ = useMyInfluencerProfile();
+
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-28">
