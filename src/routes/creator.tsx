@@ -447,7 +447,7 @@ function CampaignsTab() {
                 {c.budget.toLocaleString("en-US")} دج
               </p>
             )}
-            {r.status === "pending" && (
+            {(r.status === "pending" || r.status === "invited") && (
               <div className="mt-3 flex gap-2">
                 <button
                   disabled={mut.isPending}
