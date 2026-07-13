@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Pencil,
@@ -22,9 +22,12 @@ import {
   Camera,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
+import { useMyInfluencerProfile } from "@/lib/creator-hooks";
+
 
 export const Route = createFileRoute("/account")({
   head: () => ({
@@ -72,6 +75,8 @@ function AccountPage() {
   const [business, setBusiness] = useState(initialBusiness);
   const [editProfile, setEditProfile] = useState(false);
   const [editBusiness, setEditBusiness] = useState(false);
+  const creatorQ = useMyInfluencerProfile();
+
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-28">
@@ -82,7 +87,23 @@ function AccountPage() {
       </header>
 
       <main className="mx-auto max-w-md space-y-5 px-4 pt-5">
+        {creatorQ.data && (
+          <Link
+            to="/creator"
+            className="flex items-center gap-3 rounded-2xl bg-primary p-4 text-primary-foreground shadow-card"
+          >
+            <span className="flex size-10 items-center justify-center rounded-xl bg-white/15">
+              <Sparkles className="size-5" />
+            </span>
+            <div className="flex-1 text-right">
+              <p className="text-sm font-bold">لوحة المؤثر</p>
+              <p className="text-xs opacity-90">إدارة ملفك وأسعارك وحملاتك</p>
+            </div>
+            <ChevronLeft className="size-5" />
+          </Link>
+        )}
         {/* Profile card */}
+
         <section className="rounded-2xl border border-border bg-surface p-4 shadow-soft">
           <div className="flex items-start justify-between">
             <h2 className="text-sm font-bold text-foreground">المعلومات الشخصية</h2>

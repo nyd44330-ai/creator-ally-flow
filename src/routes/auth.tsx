@@ -88,9 +88,14 @@ function AuthPage() {
           <span>{loading ? "جارٍ التحويل..." : "المتابعة بحساب Google"}</span>
         </button>
 
+        <p className="mt-4 text-xs text-muted-foreground">
+          هل أنت مؤثر مسجَّل لدينا؟ سجّل الدخول بنفس بريد Google الذي زوّدتنا به وستجد <Link to="/creator" className="font-semibold text-primary">لوحة المؤثر</Link> جاهزة.
+        </p>
+
         <p className="mt-6 text-[11px] leading-relaxed text-muted-foreground">
           بمتابعتك فإنك توافق على شروط الاستخدام وسياسة الخصوصية.
         </p>
+
       </main>
     </div>
   );
