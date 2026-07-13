@@ -474,10 +474,12 @@ function CampaignsTab() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
+    invited: { label: "بانتظار الرد", cls: "bg-yellow-100 text-yellow-800" },
     pending: { label: "بانتظار الرد", cls: "bg-yellow-100 text-yellow-800" },
     accepted: { label: "مقبولة", cls: "bg-green-100 text-green-800" },
     rejected: { label: "مرفوضة", cls: "bg-red-100 text-red-800" },
   };
+
   const s = map[status] ?? { label: status, cls: "bg-muted text-muted-foreground" };
   return <span className={"rounded-full px-2.5 py-0.5 text-[11px] font-semibold " + s.cls}>{s.label}</span>;
 }
