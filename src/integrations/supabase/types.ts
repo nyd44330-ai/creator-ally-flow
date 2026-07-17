@@ -180,7 +180,6 @@ export type Database = {
           bio: string | null
           category: string
           created_at: string
-          email: string | null
           featured: boolean
           id: string
           image: string
@@ -197,7 +196,6 @@ export type Database = {
           services: Json
           tiktok: string | null
           tiktok_url: string | null
-          user_id: string | null
           verified: boolean
           youtube: string | null
           youtube_url: string | null
@@ -206,7 +204,6 @@ export type Database = {
           bio?: string | null
           category: string
           created_at?: string
-          email?: string | null
           featured?: boolean
           id: string
           image: string
@@ -223,7 +220,6 @@ export type Database = {
           services?: Json
           tiktok?: string | null
           tiktok_url?: string | null
-          user_id?: string | null
           verified?: boolean
           youtube?: string | null
           youtube_url?: string | null
@@ -232,7 +228,6 @@ export type Database = {
           bio?: string | null
           category?: string
           created_at?: string
-          email?: string | null
           featured?: boolean
           id?: string
           image?: string
@@ -249,7 +244,6 @@ export type Database = {
           services?: Json
           tiktok?: string | null
           tiktok_url?: string | null
-          user_id?: string | null
           verified?: boolean
           youtube?: string | null
           youtube_url?: string | null

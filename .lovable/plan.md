@@ -1,57 +1,98 @@
+# خطة إكمال التطبيق وربطه بالخلفية
 
-## الفكرة العامة
+## 1. تفعيل Lovable Cloud
 
-نضيف "وضع المؤثر" في نفس المنصة (بدون موقع منفصل). المؤثرون الموجودون حاليًا في قاعدة البيانات يبقون كما هم، ونربطهم بحسابات Google عبر البريد الإلكتروني المُسجَّل مسبقًا في ملفاتهم. عندما يسجّل المؤثر دخوله لأول مرة، يُطلب منه إدخال بريده — إن تطابق مع بريد موجود في جدول المؤثرين، يُربط الحساب تلقائيًا ويحصل على لوحة تحكم.
+تفعيل قاعدة البيانات والمصادقة قبل أي تعديل على الكود.
 
-## الخطوات
+## 2. المصادقة (المعلنون فقط)
 
-### 1) قاعدة البيانات (Migration)
+- تسجيل الدخول عبر **Google** فقط عبر broker الخاص بـ Lovable (`lovable.auth.signInWithOAuth`).
+- صفحة عامة `/auth` مع زر «الدخول بحساب Google» + شاشة استقبال.
+- حماية جميع الصفحات الحالية بنقلها إلى `src/routes/_authenticated/` (index، favorites، messages، campaigns، account، campaign.new، campaign.payment، influencer.$id).
+- إبقاء `/` كصفحة هبوط عامة موجزة للزوار غير المسجلين + إعادة توجيه للمعلنين المسجلين إلى لوحتهم، أو جعل `/` نفسه محمياً وإضافة `/welcome` عامة. سأختار الخيار الثاني لبساطة التنقل الحالي.
+- عرض حالة الجلسة في الهيدر (اسم/صورة + خروج) وربط زر «تسجيل الخروج» في `/account` بـ `supabase.auth.signOut` مع تنظيف الكاش.
 
-- إضافة عمود `email` (text, unique nullable) إلى جدول `influencers` — لربط كل مؤثر ببريده.
-- إضافة عمود `user_id` (uuid, unique nullable, FK → auth.users) — يُملأ عند أول تسجيل دخول ناجح.
-- تعبئة عمود `email` يدويًا للمؤثرين السبعة الحاليين (سأطلب منك تأكيد البريد الإلكتروني لكل واحد، أو تزودني بقائمة).
-- إضافة سياسات RLS جديدة على `influencers`:
-  - قراءة عامة (موجودة) تبقى كما هي.
-  - `UPDATE` مسموح فقط عندما `auth.uid() = user_id`.
-- سياسات RLS على `campaign_influencers` و`conversations` تسمح للمؤثر بقراءة الصفوف المرتبطة بملفه.
-- إضافة GRANT لدور `authenticated` للأعمدة الجديدة.
+## 3. مخطط قاعدة البيانات (migrations + GRANT + RLS)
 
-### 2) آلية الربط الأولى
+- `profiles` (id=auth.uid، full_name، company_name، industry، website، description، phone، avatar_url) — trigger لإنشائه عند التسجيل.
+- `influencers` (id, name, category, city, followers, rating, price, image, verified, bio, platforms jsonb, works jsonb) — قراءة عامة (`TO anon SELECT`).
+- `campaigns` (id, advertiser_id, name, goal, budget, spent, status, start_date, end_date, platforms text[], content_type, deliverables, notes) — RLS: المالك فقط.
+- `campaign_influencers` (campaign_id, influencer_id, status) — RLS عبر ملكية الحملة.
+- `favorites` (user_id, influencer_id) — RLS: المالك.
+- `conversations` (id, advertiser_id, influencer_id, campaign_id) + `messages` (conversation_id, sender, body, created_at) — RLS: المالك.
+- `payments` (id, campaign_id, advertiser_id, amount, fee, tax, total, method, provider='chargily', provider_ref, status) — RLS: المالك.
+- Seed migration ينقل بيانات `mock-influencers.ts` إلى جدول `influencers`.
 
-Server function `claimInfluencerProfile`:
-- تستدعى بعد تسجيل الدخول بـ Google.
-- تبحث في `influencers` عن صف بنفس بريد المستخدم.
-- إن وُجد وكان `user_id` فارغًا → تربطه بحساب Google الحالي.
-- إن كان مربوطًا لحساب آخر → ترفض.
-- إن لم يوجد → تعيد "غير مؤثر" (يبقى معلنًا عاديًا).
+## 4. طبقة البيانات (Server Functions)
 
-### 3) صفحات جديدة
+- `src/lib/influencers.functions.ts`: `listInfluencers`, `getInfluencer` (عام عبر publishable client).
+- `src/lib/campaigns.functions.ts`: `listMyCampaigns`, `createCampaign`, `getCampaign` (محمية).
+- `src/lib/favorites.functions.ts`: `listFavorites`, `toggleFavorite`.
+- `src/lib/messages.functions.ts`: `listConversations`, `getMessages`, `sendMessage`.
+- `src/lib/profile.functions.ts`: `getMyProfile`, `updateMyProfile`.
+- `src/lib/payments.functions.ts`: `createChargilyCheckout`, `getPaymentStatus`.
+- استخدام TanStack Query (`ensureQueryData` في loader + `useSuspenseQuery` في المكون) مع `errorComponent`/`notFoundComponent` لكل route.
 
-- `/creator` (محمية) — لوحة تحكم المؤثر: 3 تبويبات
-  - **ملفي**: تعديل `price_min`, `price_max`, `services` (قائمة قابلة للإضافة/الحذف).
-  - **أعمالي (Portfolio)**: إضافة/حذف عناصر (صورة، عنوان، منصة، براند، مشاهدات) — الصور تُرفع إلى bucket `influencer-avatars` أو bucket جديد `portfolio`.
-  - **حملاتي**: قائمة الحملات المدعو إليها من `campaign_influencers` مع حالة القبول.
-- `/creator/messages` — نفس تصميم صفحة الرسائل الحالية لكن من منظور المؤثر (المحادثات مع المعلنين).
-- تعديل `src/routes/auth.tsx` — إضافة زر "أنا مؤثر — سجل دخول" يوجّه لنفس تدفق Google، لكن بعد النجاح نستدعي `claimInfluencerProfile` ونوجّه إلى `/creator` إذا نجح الربط.
+## 5. تكامل Chargily Pay
 
-### 4) قائمة التنقل
+- سر `CHARGILY_API_KEY` + `CHARGILY_WEBHOOK_SECRET` عبر `add_secret`.
+- Server function `createChargilyCheckout` ينشئ Checkout ويعيد رابط الدفع → توجيه المستخدم.
+- Server route عام `src/routes/api/public/chargily-webhook.ts` للتحقق من التوقيع وتحديث حالة `payments` + إنشاء الحملة/المحادثات عند النجاح.
+- صفحتا رجوع: `/campaign/payment/success` و`/campaign/payment/cancel`.
 
-- إضافة رابط "لوحة المؤثر" في `BottomNav` أو `account.tsx` يظهر فقط إذا كان المستخدم مربوطًا بملف مؤثر (نضيف hook `useCreatorProfile`).
+## 6. النماذج والتحقق
 
-### 5) Bucket جديد للـ Portfolio
+- إضافة **zod** + **react-hook-form** لنماذج `campaign.new` و`account` (فعلياً موجودة UI فقط).
+- رسائل خطأ عربية، تعطيل الزر أثناء الإرسال، `toast` للنجاح/الفشل.
 
-- إنشاء bucket عام `influencer-portfolio` لرفع صور الأعمال.
+## 7. حالات التحميل والأخطاء
+
+- `pendingComponent` هيكلي (skeletons) موحّد يعيد استخدام أنماط البطاقات الحالية.
+- `errorComponent` موحّد + `notFoundComponent` في كل route.
+- Root `notFoundComponent` عربي.
+
+## 8. التنقل والإصلاحات
+
+- ربط بطاقات المؤثرين والحملات فعلياً بالبيانات الحيّة.
+- ربط زر «إنشاء حملة» في الحالات الفارغة.
+- تدفق الدفع: `campaign.new` → إنشاء سجل حملة draft → `campaign.payment` (Chargily) → webhook يفعّلها → إعادة توجيه إلى `/messages` مع محادثات مُنشأة.
+- التأكد من صحة أسماء الروابط (`to`/`params`) في كل مكان.
+
+## 9. الاستجابة والجاهزية للنشر
+
+- مراجعة كل صفحة على 375px و768px و1280px.
+- إضافة meta لكل route (title/description/og موجودة جزئياً — استكمالها).
+- فحص `code--dependency_scan` و`security--run_security_scan` قبل النهاية.
 
 ## تفاصيل تقنية
 
-- **المصادقة**: Google OAuth (مفعّل مسبقًا عبر Lovable Cloud). لا حاجة لـ OTP.
-- **الربط**: يعتمد على تطابق البريد الإلكتروني — يتطلب إدخال بريد كل مؤثر يدويًا في قاعدة البيانات قبل تفعيل الميزة.
-- **صلاحية التعديل**: مباشرة (بدون مراجعة أدمن) كما طلبت — RLS يضمن أن المؤثر يعدل ملفه فقط.
-- **الحملات**: المؤثر يرى في `/creator` قائمة الحملات من `campaign_influencers` حيث `influencer_id = <ملفه>`، ويمكنه القبول/الرفض (يحدث حقل status جديد في `campaign_influencers`).
+```text
+src/
+├── routes/
+│   ├── __root.tsx                    (Header ديناميكي + Toaster + Query provider)
+│   ├── welcome.tsx                   (هبوط عام)
+│   ├── auth.tsx                      (Google sign-in)
+│   ├── auth.callback.tsx             (استقبال الجلسة)
+│   ├── _authenticated/
+│   │   ├── route.tsx                 (مُدار — ssr:false)
+│   │   ├── index.tsx                 (نقل من routes/index.tsx)
+│   │   ├── favorites.tsx
+│   │   ├── messages.tsx
+│   │   ├── campaigns.tsx
+│   │   ├── account.tsx
+│   │   ├── influencer.$id.tsx
+│   │   ├── campaign.new.tsx
+│   │   ├── campaign.payment.tsx
+│   │   ├── campaign.payment.success.tsx
+│   │   └── campaign.payment.cancel.tsx
+│   └── api/public/
+│       └── chargily-webhook.ts
+├── lib/
+│   ├── *.functions.ts                (server fns أعلاه)
+│   └── chargily.server.ts            (SDK wrapper)
+└── integrations/supabase/*           (مُدارة)
+```
 
-## أسئلة قبل التنفيذ
+الأسرار المطلوبة من المستخدم: `CHARGILY_API_KEY`, `CHARGILY_WEBHOOK_SECRET` (سيُطلب داخل build mode عبر `add_secret`).
 
-1. **البريد الإلكتروني للمؤثرين**: هل ستزودني بقائمة بريد كل مؤثر من السبعة؟ أم تفضل أن نبدأ بإطار فارغ وتضيفها من لوحة الأدمن لاحقًا؟
-2. **قبول/رفض الحملات**: هل تريد أن يظهر للمؤثر خيار "قبول/رفض" لكل حملة يُدعى إليها؟ أم يكفي عرضها فقط الآن؟
-
-بعد إجابتك على السؤالين، سأنفذ الخطة.
+هل أبدأ التنفيذ؟ ارد تعديل بسيط وهو تسجيل الدخول فقط عندما محاولة القيام بإنشاء حملة مع مؤثر  معين وليس قبلها تبقى الرئيسية تظهر بشكل عادي للتصفح  فهمت تأكد من هذه النقطة 
