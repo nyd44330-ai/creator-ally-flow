@@ -394,7 +394,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_campaign_invited_influencer: {
+        Args: { _campaign_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_campaign_owner: {
+        Args: { _campaign_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       campaign_status:
