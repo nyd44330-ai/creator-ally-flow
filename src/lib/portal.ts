@@ -68,12 +68,15 @@ function toStringArray(v: unknown): string[] {
 /** Links the signed-in account to its influencer record (by email) and returns it. */
 export async function fetchMyInfluencer(): Promise<PortalInfluencer | null> {
   await supabase.rpc("claim_influencer_profile");
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
   const { data, error } = await supabase
     .from("influencers")
     .select(
       "id,name,category,image,bio,location,rating,reviews,verified,price_min,price_max,services,tiktok,instagram,youtube,tiktok_url,instagram_url,youtube_url",
     )
-    .not("user_id", "is", null)
+    .eq("user_id", uid)
     .limit(1)
     .maybeSingle();
   if (error) throw error;
