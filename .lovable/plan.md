@@ -1,98 +1,67 @@
-# خطة إكمال التطبيق وربطه بالخلفية
+# بوابة المؤثرين (Influencer Portal)
 
-## 1. تفعيل Lovable Cloud
+تطبيق المعلنين الحالي يبقى كما هو تماماً: لا تغيير على `/`، `/auth`، `/campaigns`، `/messages`، `/account`، `BottomNav` الحالية.
 
-تفعيل قاعدة البيانات والمصادقة قبل أي تعديل على الكود.
+## 1. ربط حساب المؤثر بسجلّه
 
-## 2. المصادقة (المعلنون فقط)
+جدول `influencers` يحتوي مسبقاً على `email` و`user_id` وسياسات وصول للمؤثر (قراءة دعواته، محادثاته، رسائله، وتعديل ملفه). الناقص هو ربط الحساب الجديد بالسجل:
 
-- تسجيل الدخول عبر **Google** فقط عبر broker الخاص بـ Lovable (`lovable.auth.signInWithOAuth`).
-- صفحة عامة `/auth` مع زر «الدخول بحساب Google» + شاشة استقبال.
-- حماية جميع الصفحات الحالية بنقلها إلى `src/routes/_authenticated/` (index، favorites، messages، campaigns، account، campaign.new، campaign.payment، influencer.$id).
-- إبقاء `/` كصفحة هبوط عامة موجزة للزوار غير المسجلين + إعادة توجيه للمعلنين المسجلين إلى لوحتهم، أو جعل `/` نفسه محمياً وإضافة `/welcome` عامة. سأختار الخيار الثاني لبساطة التنقل الحالي.
-- عرض حالة الجلسة في الهيدر (اسم/صورة + خروج) وربط زر «تسجيل الخروج» في `/account` بـ `supabase.auth.signOut` مع تنظيف الكاش.
+- دالة قاعدة بيانات آمنة (security definer) + trigger عند إنشاء مستخدم جديد: إذا كان بريد المستخدم يطابق `influencers.email` وسجلّه غير مرتبط، تُضبط `influencers.user_id` تلقائياً.
+- دالة `public.is_influencer(uid)` لاستخدامها في الحماية والواجهة.
+- إضافة سياسة قراءة للمؤثر على `payments`/`campaigns` بقدر ما تتطلبه صفحة الأرباح (قراءة مبالغ الحملات التي قَبِلها فقط، بدون بيانات المعلن الحساسة).
 
-## 3. مخطط قاعدة البيانات (migrations + GRANT + RLS)
+المؤثر الذي لا يوجد بريده في الجدول: تظهر له رسالة «لم نعثر على ملفك، تواصل مع الدعم» بدل لوحة فارغة.
 
-- `profiles` (id=auth.uid، full_name، company_name، industry، website، description، phone، avatar_url) — trigger لإنشائه عند التسجيل.
-- `influencers` (id, name, category, city, followers, rating, price, image, verified, bio, platforms jsonb, works jsonb) — قراءة عامة (`TO anon SELECT`).
-- `campaigns` (id, advertiser_id, name, goal, budget, spent, status, start_date, end_date, platforms text[], content_type, deliverables, notes) — RLS: المالك فقط.
-- `campaign_influencers` (campaign_id, influencer_id, status) — RLS عبر ملكية الحملة.
-- `favorites` (user_id, influencer_id) — RLS: المالك.
-- `conversations` (id, advertiser_id, influencer_id, campaign_id) + `messages` (conversation_id, sender, body, created_at) — RLS: المالك.
-- `payments` (id, campaign_id, advertiser_id, amount, fee, tax, total, method, provider='chargily', provider_ref, status) — RLS: المالك.
-- Seed migration ينقل بيانات `mock-influencers.ts` إلى جدول `influencers`.
+## 2. صفحة الدخول `/influencer-login`
 
-## 4. طبقة البيانات (Server Functions)
+- صفحة عامة مستقلة، هوية بصرية مختلفة عن `/auth` (تبقى ضمن نفس الـ design tokens: خلفية متدرجة داكنة/لهجة ثانوية، بطاقة مركزية، شعار «بوابة المؤثرين») — بدون ألوان مكتوبة يدوياً.
+- تبويبان: **دخول** و**إنشاء حساب** ببريد وكلمة سر عبر Supabase Auth (email/password).
+- تحقق بـ zod + رسائل خطأ عربية + حالة تحميل + `toast`.
+- «نسيت كلمة السر» → `resetPasswordForEmail` وصفحة `/influencer-reset-password` لضبط كلمة سر جديدة.
+- إذا كان مسجّلاً مسبقاً → تحويل مباشر إلى `/portal`.
 
-- `src/lib/influencers.functions.ts`: `listInfluencers`, `getInfluencer` (عام عبر publishable client).
-- `src/lib/campaigns.functions.ts`: `listMyCampaigns`, `createCampaign`, `getCampaign` (محمية).
-- `src/lib/favorites.functions.ts`: `listFavorites`, `toggleFavorite`.
-- `src/lib/messages.functions.ts`: `listConversations`, `getMessages`, `sendMessage`.
-- `src/lib/profile.functions.ts`: `getMyProfile`, `updateMyProfile`.
-- `src/lib/payments.functions.ts`: `createChargilyCheckout`, `getPaymentStatus`.
-- استخدام TanStack Query (`ensureQueryData` في loader + `useSuspenseQuery` في المكون) مع `errorComponent`/`notFoundComponent` لكل route.
+## 3. الحماية
 
-## 5. تكامل Chargily Pay
+- تخطيط محمي `src/routes/_influencer/route.tsx` (`ssr: false`) يتحقق من الجلسة ويعيد غير المسجّل إلى `/influencer-login`، وتُبنى تحته كل صفحات `/portal/*`.
+- تسجيل الخروج ينظّف الكاش ويعيد إلى `/influencer-login`.
 
-- سر `CHARGILY_API_KEY` + `CHARGILY_WEBHOOK_SECRET` عبر `add_secret`.
-- Server function `createChargilyCheckout` ينشئ Checkout ويعيد رابط الدفع → توجيه المستخدم.
-- Server route عام `src/routes/api/public/chargily-webhook.ts` للتحقق من التوقيع وتحديث حالة `payments` + إنشاء الحملة/المحادثات عند النجاح.
-- صفحتا رجوع: `/campaign/payment/success` و`/campaign/payment/cancel`.
+## 4. الصفحات
 
-## 6. النماذج والتحقق
+| المسار | المحتوى |
+| --- | --- |
+| `/portal` | ترحيب بالاسم والصورة + 3 بطاقات إحصائية (عدد العروض الجديدة، إجمالي الأرباح، التقييم) + آخر 3 عروض واردة |
+| `/portal/offers` | كل الدعوات من `campaign_influencers` مع تفاصيل الحملة (الاسم، الهدف، الميزانية، المنصات، المدة) وأزرار **قبول** / **رفض**، مع فلاتر بالحالة |
+| `/portal/earnings` | ملخص الأرباح (مدفوع / قيد التحصيل) + قائمة بالحملات المقبولة ومبالغها وحالتها |
+| `/portal/messages` | قائمة المحادثات + شاشة محادثة مع إرسال رسائل (نفس جداول `conversations`/`messages`) |
+| `/portal/profile` | تعديل الاسم، الصورة (رفع إلى bucket `influencer-avatars`)، البايو، الموقع، حسابات المنصات وروابطها، الخدمات، والأسعار |
 
-- إضافة **zod** + **react-hook-form** لنماذج `campaign.new` و`account` (فعلياً موجودة UI فقط).
-- رسائل خطأ عربية، تعطيل الزر أثناء الإرسال، `toast` للنجاح/الفشل.
+## 5. تنقّل البوابة
 
-## 7. حالات التحميل والأخطاء
+مكوّن جديد `PortalNav` (نفس أسلوب `BottomNav` لكن ببنود البوابة: الرئيسية، العروض، الأرباح، الرسائل، حسابي) يُعرض فقط داخل `/portal/*`.
 
-- `pendingComponent` هيكلي (skeletons) موحّد يعيد استخدام أنماط البطاقات الحالية.
-- `errorComponent` موحّد + `notFoundComponent` في كل route.
-- Root `notFoundComponent` عربي.
+## 6. الجودة
 
-## 8. التنقل والإصلاحات
-
-- ربط بطاقات المؤثرين والحملات فعلياً بالبيانات الحيّة.
-- ربط زر «إنشاء حملة» في الحالات الفارغة.
-- تدفق الدفع: `campaign.new` → إنشاء سجل حملة draft → `campaign.payment` (Chargily) → webhook يفعّلها → إعادة توجيه إلى `/messages` مع محادثات مُنشأة.
-- التأكد من صحة أسماء الروابط (`to`/`params`) في كل مكان.
-
-## 9. الاستجابة والجاهزية للنشر
-
-- مراجعة كل صفحة على 375px و768px و1280px.
-- إضافة meta لكل route (title/description/og موجودة جزئياً — استكمالها).
-- فحص `code--dependency_scan` و`security--run_security_scan` قبل النهاية.
+- طبقة بيانات `src/lib/portal.functions.ts` (server functions محمية) لكل القراءات/الكتابات الخاصة بالمؤثر.
+- TanStack Query لكل صفحة + هياكل تحميل (skeletons) + `errorComponent` + حالات فارغة عربية.
+- تحقق zod في نماذج الملف الشخصي والرسائل.
+- RTL كامل، ومراجعة على 375px / 768px / 1280px.
+- `head()` خاص لكل صفحة (عنوان ووصف بالعربية) مع `noindex` لصفحات البوابة.
 
 ## تفاصيل تقنية
 
 ```text
-src/
-├── routes/
-│   ├── __root.tsx                    (Header ديناميكي + Toaster + Query provider)
-│   ├── welcome.tsx                   (هبوط عام)
-│   ├── auth.tsx                      (Google sign-in)
-│   ├── auth.callback.tsx             (استقبال الجلسة)
-│   ├── _authenticated/
-│   │   ├── route.tsx                 (مُدار — ssr:false)
-│   │   ├── index.tsx                 (نقل من routes/index.tsx)
-│   │   ├── favorites.tsx
-│   │   ├── messages.tsx
-│   │   ├── campaigns.tsx
-│   │   ├── account.tsx
-│   │   ├── influencer.$id.tsx
-│   │   ├── campaign.new.tsx
-│   │   ├── campaign.payment.tsx
-│   │   ├── campaign.payment.success.tsx
-│   │   └── campaign.payment.cancel.tsx
-│   └── api/public/
-│       └── chargily-webhook.ts
-├── lib/
-│   ├── *.functions.ts                (server fns أعلاه)
-│   └── chargily.server.ts            (SDK wrapper)
-└── integrations/supabase/*           (مُدارة)
+src/routes/
+├── influencer-login.tsx
+├── influencer-reset-password.tsx
+└── _influencer/
+    ├── route.tsx            (بوابة الحماية، ssr:false)
+    ├── portal.index.tsx
+    ├── portal.offers.tsx
+    ├── portal.earnings.tsx
+    ├── portal.messages.tsx
+    └── portal.profile.tsx
+src/components/PortalNav.tsx
+src/lib/portal.functions.ts
 ```
 
-الأسرار المطلوبة من المستخدم: `CHARGILY_API_KEY`, `CHARGILY_WEBHOOK_SECRET` (سيُطلب داخل build mode عبر `add_secret`).
-
-هل أبدأ التنفيذ؟ ارد تعديل بسيط وهو تسجيل الدخول فقط عندما محاولة القيام بإنشاء حملة مع مؤثر  معين وليس قبلها تبقى الرئيسية تظهر بشكل عادي للتصفح  فهمت تأكد من هذه النقطة 
+نقطة تحتاج تأكيدك: **الأرباح** تُحتسب من ميزانية الحملات التي قَبِلها المؤثر (مقسومة على عدد المؤثرين في الحملة) لأن النظام الحالي لا يخزّن مبلغاً متفقاً عليه لكل مؤثر. إن أردت مبلغاً مستقلاً لكل دعوة سأضيف عمود `agreed_amount` في `campaign_influencers`.
