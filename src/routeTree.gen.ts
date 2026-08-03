@@ -27,6 +27,7 @@ import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.pa
 import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
 import { Route as InfluencerPortalOffersRouteImport } from './routes/_influencer/portal.offers'
+import { Route as InfluencerPortalEarningsRouteImport } from './routes/_influencer/portal.earnings'
 
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
@@ -118,6 +119,12 @@ const InfluencerPortalOffersRoute = InfluencerPortalOffersRouteImport.update({
   path: '/portal/offers',
   getParentRoute: () => InfluencerRouteRoute,
 } as any)
+const InfluencerPortalEarningsRoute =
+  InfluencerPortalEarningsRouteImport.update({
+    id: '/portal/earnings',
+    path: '/portal/earnings',
+    getParentRoute: () => InfluencerRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/portal/offers': typeof InfluencerPortalOffersRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/portal/offers': typeof InfluencerPortalOffersRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
@@ -172,6 +181,7 @@ export interface FileRoutesById {
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/_influencer/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/_influencer/portal/offers': typeof InfluencerPortalOffersRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/earnings'
     | '/portal/offers'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/earnings'
     | '/portal/offers'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
@@ -232,6 +244,7 @@ export interface FileRouteTypes {
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/_influencer/portal/earnings'
     | '/_influencer/portal/offers'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
@@ -383,15 +396,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InfluencerPortalOffersRouteImport
       parentRoute: typeof InfluencerRouteRoute
     }
+    '/_influencer/portal/earnings': {
+      id: '/_influencer/portal/earnings'
+      path: '/portal/earnings'
+      fullPath: '/portal/earnings'
+      preLoaderRoute: typeof InfluencerPortalEarningsRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
   }
 }
 
 interface InfluencerRouteRouteChildren {
+  InfluencerPortalEarningsRoute: typeof InfluencerPortalEarningsRoute
   InfluencerPortalOffersRoute: typeof InfluencerPortalOffersRoute
   InfluencerPortalIndexRoute: typeof InfluencerPortalIndexRoute
 }
 
 const InfluencerRouteRouteChildren: InfluencerRouteRouteChildren = {
+  InfluencerPortalEarningsRoute: InfluencerPortalEarningsRoute,
   InfluencerPortalOffersRoute: InfluencerPortalOffersRoute,
   InfluencerPortalIndexRoute: InfluencerPortalIndexRoute,
 }
