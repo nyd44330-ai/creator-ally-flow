@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as InfluencerResetPasswordRouteImport } from './routes/influencer-reset-password'
 import { Route as InfluencerLoginRouteImport } from './routes/influencer-login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
@@ -27,6 +28,11 @@ import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/publi
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencerResetPasswordRoute = InfluencerResetPasswordRouteImport.update({
+  id: '/influencer-reset-password',
+  path: '/influencer-reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InfluencerLoginRoute = InfluencerLoginRouteImport.update({
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/favorites'
     | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
   InfluencerLoginRoute: typeof InfluencerLoginRoute
+  InfluencerResetPasswordRoute: typeof InfluencerResetPasswordRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
   CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencer-reset-password': {
+      id: '/influencer-reset-password'
+      path: '/influencer-reset-password'
+      fullPath: '/influencer-reset-password'
+      preLoaderRoute: typeof InfluencerResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/influencer-login': {
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
   InfluencerLoginRoute: InfluencerLoginRoute,
+  InfluencerResetPasswordRoute: InfluencerResetPasswordRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
   CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
