@@ -10,22 +10,40 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as InfluencerResetPasswordRouteImport } from './routes/influencer-reset-password'
+import { Route as InfluencerLoginRouteImport } from './routes/influencer-login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
+import { Route as InfluencerRouteRouteImport } from './routes/_influencer/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as InfluencerPortalIndexRouteImport } from './routes/_influencer/portal.index'
 import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.payment.success'
 import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
+import { Route as InfluencerPortalProfileRouteImport } from './routes/_influencer/portal.profile'
+import { Route as InfluencerPortalOffersRouteImport } from './routes/_influencer/portal.offers'
+import { Route as InfluencerPortalMessagesRouteImport } from './routes/_influencer/portal.messages'
+import { Route as InfluencerPortalEarningsRouteImport } from './routes/_influencer/portal.earnings'
 
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencerResetPasswordRoute = InfluencerResetPasswordRouteImport.update({
+  id: '/influencer-reset-password',
+  path: '/influencer-reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencerLoginRoute = InfluencerLoginRouteImport.update({
+  id: '/influencer-login',
+  path: '/influencer-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FavoritesRoute = FavoritesRouteImport.update({
@@ -46,6 +64,10 @@ const AuthRoute = AuthRouteImport.update({
 const AccountRoute = AccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencerRouteRoute = InfluencerRouteRouteImport.update({
+  id: '/_influencer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -73,6 +95,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => AuthRoute,
 } as any)
+const InfluencerPortalIndexRoute = InfluencerPortalIndexRouteImport.update({
+  id: '/portal/',
+  path: '/portal/',
+  getParentRoute: () => InfluencerRouteRoute,
+} as any)
 const CampaignPaymentSuccessRoute = CampaignPaymentSuccessRouteImport.update({
   id: '/success',
   path: '/success',
@@ -89,6 +116,28 @@ const ApiPublicChargilyWebhookRoute =
     path: '/api/public/chargily-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const InfluencerPortalProfileRoute = InfluencerPortalProfileRouteImport.update({
+  id: '/portal/profile',
+  path: '/portal/profile',
+  getParentRoute: () => InfluencerRouteRoute,
+} as any)
+const InfluencerPortalOffersRoute = InfluencerPortalOffersRouteImport.update({
+  id: '/portal/offers',
+  path: '/portal/offers',
+  getParentRoute: () => InfluencerRouteRoute,
+} as any)
+const InfluencerPortalMessagesRoute =
+  InfluencerPortalMessagesRouteImport.update({
+    id: '/portal/messages',
+    path: '/portal/messages',
+    getParentRoute: () => InfluencerRouteRoute,
+  } as any)
+const InfluencerPortalEarningsRoute =
+  InfluencerPortalEarningsRouteImport.update({
+    id: '/portal/earnings',
+    path: '/portal/earnings',
+    getParentRoute: () => InfluencerRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,14 +145,21 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/earnings': typeof InfluencerPortalEarningsRoute
+  '/portal/messages': typeof InfluencerPortalMessagesRoute
+  '/portal/offers': typeof InfluencerPortalOffersRoute
+  '/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
+  '/portal/': typeof InfluencerPortalIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -111,30 +167,45 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/earnings': typeof InfluencerPortalEarningsRoute
+  '/portal/messages': typeof InfluencerPortalMessagesRoute
+  '/portal/offers': typeof InfluencerPortalOffersRoute
+  '/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
+  '/portal': typeof InfluencerPortalIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_influencer': typeof InfluencerRouteRouteWithChildren
   '/account': typeof AccountRoute
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
+  '/influencer-reset-password': typeof InfluencerResetPasswordRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/_influencer/portal/earnings': typeof InfluencerPortalEarningsRoute
+  '/_influencer/portal/messages': typeof InfluencerPortalMessagesRoute
+  '/_influencer/portal/offers': typeof InfluencerPortalOffersRoute
+  '/_influencer/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
+  '/_influencer/portal/': typeof InfluencerPortalIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -144,14 +215,21 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/earnings'
+    | '/portal/messages'
+    | '/portal/offers'
+    | '/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
+    | '/portal/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -159,37 +237,55 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/earnings'
+    | '/portal/messages'
+    | '/portal/offers'
+    | '/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
+    | '/portal'
   id:
     | '__root__'
     | '/'
+    | '/_influencer'
     | '/account'
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
+    | '/influencer-reset-password'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/_influencer/portal/earnings'
+    | '/_influencer/portal/messages'
+    | '/_influencer/portal/offers'
+    | '/_influencer/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
+    | '/_influencer/portal/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  InfluencerRouteRoute: typeof InfluencerRouteRouteWithChildren
   AccountRoute: typeof AccountRoute
   AuthRoute: typeof AuthRouteWithChildren
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
+  InfluencerLoginRoute: typeof InfluencerLoginRoute
+  InfluencerResetPasswordRoute: typeof InfluencerResetPasswordRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
   CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
@@ -204,6 +300,20 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencer-reset-password': {
+      id: '/influencer-reset-password'
+      path: '/influencer-reset-password'
+      fullPath: '/influencer-reset-password'
+      preLoaderRoute: typeof InfluencerResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencer-login': {
+      id: '/influencer-login'
+      path: '/influencer-login'
+      fullPath: '/influencer-login'
+      preLoaderRoute: typeof InfluencerLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favorites': {
@@ -232,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_influencer': {
+      id: '/_influencer'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof InfluencerRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -269,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_influencer/portal/': {
+      id: '/_influencer/portal/'
+      path: '/portal'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof InfluencerPortalIndexRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
     '/campaign/payment/success': {
       id: '/campaign/payment/success'
       path: '/success'
@@ -290,8 +414,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicChargilyWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_influencer/portal/profile': {
+      id: '/_influencer/portal/profile'
+      path: '/portal/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof InfluencerPortalProfileRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
+    '/_influencer/portal/offers': {
+      id: '/_influencer/portal/offers'
+      path: '/portal/offers'
+      fullPath: '/portal/offers'
+      preLoaderRoute: typeof InfluencerPortalOffersRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
+    '/_influencer/portal/messages': {
+      id: '/_influencer/portal/messages'
+      path: '/portal/messages'
+      fullPath: '/portal/messages'
+      preLoaderRoute: typeof InfluencerPortalMessagesRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
+    '/_influencer/portal/earnings': {
+      id: '/_influencer/portal/earnings'
+      path: '/portal/earnings'
+      fullPath: '/portal/earnings'
+      preLoaderRoute: typeof InfluencerPortalEarningsRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
   }
 }
+
+interface InfluencerRouteRouteChildren {
+  InfluencerPortalEarningsRoute: typeof InfluencerPortalEarningsRoute
+  InfluencerPortalMessagesRoute: typeof InfluencerPortalMessagesRoute
+  InfluencerPortalOffersRoute: typeof InfluencerPortalOffersRoute
+  InfluencerPortalProfileRoute: typeof InfluencerPortalProfileRoute
+  InfluencerPortalIndexRoute: typeof InfluencerPortalIndexRoute
+}
+
+const InfluencerRouteRouteChildren: InfluencerRouteRouteChildren = {
+  InfluencerPortalEarningsRoute: InfluencerPortalEarningsRoute,
+  InfluencerPortalMessagesRoute: InfluencerPortalMessagesRoute,
+  InfluencerPortalOffersRoute: InfluencerPortalOffersRoute,
+  InfluencerPortalProfileRoute: InfluencerPortalProfileRoute,
+  InfluencerPortalIndexRoute: InfluencerPortalIndexRoute,
+}
+
+const InfluencerRouteRouteWithChildren = InfluencerRouteRoute._addFileChildren(
+  InfluencerRouteRouteChildren,
+)
 
 interface AuthRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -319,10 +491,13 @@ const CampaignPaymentRouteWithChildren = CampaignPaymentRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  InfluencerRouteRoute: InfluencerRouteRouteWithChildren,
   AccountRoute: AccountRoute,
   AuthRoute: AuthRouteWithChildren,
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
+  InfluencerLoginRoute: InfluencerLoginRoute,
+  InfluencerResetPasswordRoute: InfluencerResetPasswordRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
   CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
@@ -332,13 +507,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
