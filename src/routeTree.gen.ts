@@ -26,6 +26,7 @@ import { Route as InfluencerPortalIndexRouteImport } from './routes/_influencer/
 import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.payment.success'
 import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
+import { Route as InfluencerPortalProfileRouteImport } from './routes/_influencer/portal.profile'
 import { Route as InfluencerPortalOffersRouteImport } from './routes/_influencer/portal.offers'
 import { Route as InfluencerPortalMessagesRouteImport } from './routes/_influencer/portal.messages'
 import { Route as InfluencerPortalEarningsRouteImport } from './routes/_influencer/portal.earnings'
@@ -115,6 +116,11 @@ const ApiPublicChargilyWebhookRoute =
     path: '/api/public/chargily-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const InfluencerPortalProfileRoute = InfluencerPortalProfileRouteImport.update({
+  id: '/portal/profile',
+  path: '/portal/profile',
+  getParentRoute: () => InfluencerRouteRoute,
+} as any)
 const InfluencerPortalOffersRoute = InfluencerPortalOffersRouteImport.update({
   id: '/portal/offers',
   path: '/portal/offers',
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/portal/messages': typeof InfluencerPortalMessagesRoute
   '/portal/offers': typeof InfluencerPortalOffersRoute
+  '/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/portal/messages': typeof InfluencerPortalMessagesRoute
   '/portal/offers': typeof InfluencerPortalOffersRoute
+  '/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/_influencer/portal/earnings': typeof InfluencerPortalEarningsRoute
   '/_influencer/portal/messages': typeof InfluencerPortalMessagesRoute
   '/_influencer/portal/offers': typeof InfluencerPortalOffersRoute
+  '/_influencer/portal/profile': typeof InfluencerPortalProfileRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/portal/earnings'
     | '/portal/messages'
     | '/portal/offers'
+    | '/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/portal/earnings'
     | '/portal/messages'
     | '/portal/offers'
+    | '/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/_influencer/portal/earnings'
     | '/_influencer/portal/messages'
     | '/_influencer/portal/offers'
+    | '/_influencer/portal/profile'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -402,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicChargilyWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_influencer/portal/profile': {
+      id: '/_influencer/portal/profile'
+      path: '/portal/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof InfluencerPortalProfileRouteImport
+      parentRoute: typeof InfluencerRouteRoute
+    }
     '/_influencer/portal/offers': {
       id: '/_influencer/portal/offers'
       path: '/portal/offers'
@@ -430,6 +449,7 @@ interface InfluencerRouteRouteChildren {
   InfluencerPortalEarningsRoute: typeof InfluencerPortalEarningsRoute
   InfluencerPortalMessagesRoute: typeof InfluencerPortalMessagesRoute
   InfluencerPortalOffersRoute: typeof InfluencerPortalOffersRoute
+  InfluencerPortalProfileRoute: typeof InfluencerPortalProfileRoute
   InfluencerPortalIndexRoute: typeof InfluencerPortalIndexRoute
 }
 
@@ -437,6 +457,7 @@ const InfluencerRouteRouteChildren: InfluencerRouteRouteChildren = {
   InfluencerPortalEarningsRoute: InfluencerPortalEarningsRoute,
   InfluencerPortalMessagesRoute: InfluencerPortalMessagesRoute,
   InfluencerPortalOffersRoute: InfluencerPortalOffersRoute,
+  InfluencerPortalProfileRoute: InfluencerPortalProfileRoute,
   InfluencerPortalIndexRoute: InfluencerPortalIndexRoute,
 }
 
