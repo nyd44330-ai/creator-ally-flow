@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Loader2, Sparkles, ArrowRight } from "lucide-react";
+import { z } from "zod";
+import { Loader2, Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
-import { lovable } from "@/integrations/lovable";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/influencer-login")({
@@ -20,9 +20,19 @@ export const Route = createFileRoute("/influencer-login")({
   component: InfluencerLoginPage,
 });
 
+const schema = z.object({
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة السر يجب أن تكون 6 أحرف على الأقل"),
+});
+
 function InfluencerLoginPage() {
   const navigate = useNavigate();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [sentConfirm, setSentConfirm] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -30,24 +40,60 @@ function InfluencerLoginPage() {
     });
   }, [navigate]);
 
-  const handleGoogle = async () => {
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsed = schema.safeParse({ email, password });
+    if (!parsed.success) {
+      const next: Record<string, string> = {};
+      for (const issue of parsed.error.issues) next[String(issue.path[0])] = issue.message;
+      setErrors(next);
+      return;
+    }
+    setErrors({});
     setLoading(true);
     try {
-      sessionStorage.setItem("auth:next", "/portal");
-      const res = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/auth/callback",
-      });
-      if (res.error) {
-        toast.error("تعذّر تسجيل الدخول");
-        setLoading(false);
-        return;
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          toast.error("بيانات الدخول غير صحيحة");
+          return;
+        }
+        navigate({ to: "/portal", replace: true });
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + "/influencer-login" },
+        });
+        if (error) {
+          toast.error(error.message.includes("registered") ? "هذا البريد مسجّل مسبقاً" : "تعذّر إنشاء الحساب");
+          return;
+        }
+        if (data.session) {
+          navigate({ to: "/portal", replace: true });
+        } else {
+          setSentConfirm(true);
+          toast.success("تم إرسال رابط التفعيل إلى بريدك");
+        }
       }
-      if (res.redirected) return;
-      navigate({ to: "/portal", replace: true });
     } catch {
       toast.error("حدث خطأ غير متوقع");
+    } finally {
       setLoading(false);
     }
+  };
+
+  const forgot = async () => {
+    const parsed = z.string().email().safeParse(email);
+    if (!parsed.success) {
+      setErrors({ email: "أدخل بريدك أولاً لإعادة التعيين" });
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/influencer-reset-password",
+    });
+    if (error) toast.error("تعذّر إرسال رابط الاستعادة");
+    else toast.success("أرسلنا لك رابط استعادة كلمة السر");
   };
 
   return (
@@ -73,28 +119,96 @@ function InfluencerLoginPage() {
         </div>
 
         <div className="rounded-3xl border border-border bg-surface p-5 shadow-card">
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={loading}
-            className="flex w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background px-4 py-3.5 text-sm font-bold text-foreground shadow-soft transition hover:bg-muted disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 className="size-5 animate-spin" />
-            ) : (
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden>
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.1A6.98 6.98 0 0 1 5.47 12c0-.73.13-1.44.35-2.1V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.46 1.18 4.93l3.66-2.83z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.46 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z" />
-              </svg>
-            )}
-            <span>{loading ? "جارٍ التحويل..." : "تسجيل الدخول بـ Google"}</span>
-          </button>
+          <div className="mb-5 grid grid-cols-2 gap-1 rounded-2xl bg-muted p-1">
+            {(["signin", "signup"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMode(m);
+                  setErrors({});
+                  setSentConfirm(false);
+                }}
+                className={
+                  "rounded-xl px-3 py-2 text-sm font-bold transition " +
+                  (mode === m ? "bg-surface text-foreground shadow-soft" : "text-muted-foreground")
+                }
+              >
+                {m === "signin" ? "تسجيل الدخول" : "إنشاء حساب"}
+              </button>
+            ))}
+          </div>
 
-          <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
-            بمتابعتك فإنك توافق على شروط الاستخدام وسياسة الخصوصية.
-          </p>
+          {sentConfirm ? (
+            <div className="py-6 text-center">
+              <Mail className="mx-auto mb-3 size-8 text-accent" />
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                أرسلنا رابط تفعيل إلى <span className="font-bold text-foreground">{email}</span>. افتح
+                الرابط ثم عد لتسجيل الدخول.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={submit} className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-foreground" htmlFor="email">
+                  البريد الإلكتروني
+                </label>
+                <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 py-3">
+                  <Mail className="size-4 text-muted-foreground" />
+                  <input
+                    id="email"
+                    type="email"
+                    dir="ltr"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                  />
+                </div>
+                {errors.email && <p className="mt-1 text-[11px] text-destructive">{errors.email}</p>}
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-foreground" htmlFor="password">
+                  كلمة السر
+                </label>
+                <div className="flex items-center gap-2 rounded-2xl border border-border bg-background px-3 py-3">
+                  <Lock className="size-4 text-muted-foreground" />
+                  <input
+                    id="password"
+                    type="password"
+                    dir="ltr"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                  />
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-[11px] text-destructive">{errors.password}</p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="mt-1 flex items-center justify-center gap-2 rounded-2xl bg-accent px-4 py-3.5 text-sm font-bold text-accent-foreground shadow-card transition hover:opacity-90 disabled:opacity-60"
+              >
+                {loading && <Loader2 className="size-4 animate-spin" />}
+                {mode === "signin" ? "دخول إلى البوابة" : "إنشاء حساب مؤثر"}
+              </button>
+
+              {mode === "signin" && (
+                <button
+                  type="button"
+                  onClick={forgot}
+                  className="text-center text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  نسيت كلمة السر؟
+                </button>
+              )}
+            </form>
+          )}
         </div>
 
         <p className="mt-6 text-center text-[11px] leading-relaxed text-muted-foreground">
