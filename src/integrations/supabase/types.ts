@@ -394,20 +394,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      claim_influencer_profile: { Args: never; Returns: string }
-      influencer_earnings: {
-        Args: never
-        Returns: {
-          campaign_id: string
-          campaign_name: string
-          campaign_status: Database["public"]["Enums"]["campaign_status"]
-          created_at: string
-          invite_status: string
-          paid: boolean
-          participants: number
-          share: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
       campaign_status:
