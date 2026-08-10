@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PortalRouteImport } from './routes/portal'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as InfluencerLoginRouteImport } from './routes/influencer-login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
@@ -24,6 +25,11 @@ import { Route as CampaignPaymentSuccessRouteImport } from './routes/campaign.pa
 import { Route as CampaignPaymentCancelRouteImport } from './routes/campaign.payment.cancel'
 import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/public/chargily-webhook'
 
+const PortalRoute = PortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
+  '/portal': typeof PortalRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
+  '/portal': typeof PortalRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
+  '/portal': typeof PortalRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
@@ -155,6 +164,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/influencer-login'
     | '/messages'
+    | '/portal'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/influencer-login'
     | '/messages'
+    | '/portal'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/influencer-login'
     | '/messages'
+    | '/portal'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
@@ -204,6 +216,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   InfluencerLoginRoute: typeof InfluencerLoginRoute
   MessagesRoute: typeof MessagesRoute
+  PortalRoute: typeof PortalRoute
   CampaignNewRoute: typeof CampaignNewRoute
   CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
   InfluencerIdRoute: typeof InfluencerIdRoute
@@ -212,6 +225,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/portal': {
+      id: '/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
@@ -345,6 +365,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   InfluencerLoginRoute: InfluencerLoginRoute,
   MessagesRoute: MessagesRoute,
+  PortalRoute: PortalRoute,
   CampaignNewRoute: CampaignNewRoute,
   CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
   InfluencerIdRoute: InfluencerIdRoute,
