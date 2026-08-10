@@ -17,6 +17,7 @@ import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
 import { Route as CampaignNewRouteImport } from './routes/campaign.new'
@@ -65,6 +66,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PortalRoute,
+} as any)
 const InfluencerIdRoute = InfluencerIdRouteImport.update({
   id: '/influencer/$id',
   path: '/influencer/$id',
@@ -110,11 +116,12 @@ export interface FileRoutesByFullPath {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -127,11 +134,11 @@ export interface FileRoutesByTo {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
-  '/portal': typeof PortalRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -145,11 +152,12 @@ export interface FileRoutesById {
   '/favorites': typeof FavoritesRoute
   '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
-  '/portal': typeof PortalRoute
+  '/portal': typeof PortalRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
+  '/portal/': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
   '/campaign/payment/cancel': typeof CampaignPaymentCancelRoute
   '/campaign/payment/success': typeof CampaignPaymentSuccessRoute
@@ -169,6 +177,7 @@ export interface FileRouteTypes {
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -181,11 +190,11 @@ export interface FileRouteTypes {
     | '/favorites'
     | '/influencer-login'
     | '/messages'
-    | '/portal'
     | '/auth/callback'
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/campaign/new'
     | '/campaign/payment'
     | '/influencer/$id'
+    | '/portal/'
     | '/api/public/chargily-webhook'
     | '/campaign/payment/cancel'
     | '/campaign/payment/success'
@@ -216,7 +226,7 @@ export interface RootRouteChildren {
   FavoritesRoute: typeof FavoritesRoute
   InfluencerLoginRoute: typeof InfluencerLoginRoute
   MessagesRoute: typeof MessagesRoute
-  PortalRoute: typeof PortalRoute
+  PortalRoute: typeof PortalRouteWithChildren
   CampaignNewRoute: typeof CampaignNewRoute
   CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
   InfluencerIdRoute: typeof InfluencerIdRoute
@@ -281,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/': {
+      id: '/portal/'
+      path: '/'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/influencer/$id': {
       id: '/influencer/$id'
       path: '/influencer/$id'
@@ -343,6 +360,17 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface PortalRouteChildren {
+  PortalIndexRoute: typeof PortalIndexRoute
+}
+
+const PortalRouteChildren: PortalRouteChildren = {
+  PortalIndexRoute: PortalIndexRoute,
+}
+
+const PortalRouteWithChildren =
+  PortalRoute._addFileChildren(PortalRouteChildren)
+
 interface CampaignPaymentRouteChildren {
   CampaignPaymentCancelRoute: typeof CampaignPaymentCancelRoute
   CampaignPaymentSuccessRoute: typeof CampaignPaymentSuccessRoute
@@ -365,7 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   FavoritesRoute: FavoritesRoute,
   InfluencerLoginRoute: InfluencerLoginRoute,
   MessagesRoute: MessagesRoute,
-  PortalRoute: PortalRoute,
+  PortalRoute: PortalRouteWithChildren,
   CampaignNewRoute: CampaignNewRoute,
   CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
   InfluencerIdRoute: InfluencerIdRoute,
