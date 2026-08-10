@@ -394,7 +394,35 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_influencer_profile: { Args: never; Returns: string }
+      influencer_earnings: {
+        Args: never
+        Returns: {
+          campaign_id: string
+          campaign_name: string
+          campaign_status: Database["public"]["Enums"]["campaign_status"]
+          created_at: string
+          invite_status: string
+          paid: boolean
+          participants: number
+          share: number
+        }[]
+      }
+      link_influencer_account: { Args: never; Returns: string }
+      my_influencer_earnings: {
+        Args: never
+        Returns: {
+          budget: number
+          campaign_id: string
+          campaign_name: string
+          end_date: string
+          influencer_count: number
+          invite_status: string
+          share: number
+          start_date: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       campaign_status:
