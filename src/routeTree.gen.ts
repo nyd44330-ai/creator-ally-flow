@@ -19,6 +19,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PortalIndexRouteImport } from './routes/portal.index'
 import { Route as PortalOffersRouteImport } from './routes/portal.offers'
+import { Route as PortalMessagesRouteImport } from './routes/portal.messages'
 import { Route as PortalEarningsRouteImport } from './routes/portal.earnings'
 import { Route as InfluencerIdRouteImport } from './routes/influencer.$id'
 import { Route as CampaignPaymentRouteImport } from './routes/campaign.payment'
@@ -78,6 +79,11 @@ const PortalOffersRoute = PortalOffersRouteImport.update({
   path: '/offers',
   getParentRoute: () => PortalRoute,
 } as any)
+const PortalMessagesRoute = PortalMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => PortalRoute,
+} as any)
 const PortalEarningsRoute = PortalEarningsRouteImport.update({
   id: '/earnings',
   path: '/earnings',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/portal/earnings': typeof PortalEarningsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/offers': typeof PortalOffersRoute
   '/portal/': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/portal/earnings': typeof PortalEarningsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/offers': typeof PortalOffersRoute
   '/portal': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/campaign/payment': typeof CampaignPaymentRouteWithChildren
   '/influencer/$id': typeof InfluencerIdRoute
   '/portal/earnings': typeof PortalEarningsRoute
+  '/portal/messages': typeof PortalMessagesRoute
   '/portal/offers': typeof PortalOffersRoute
   '/portal/': typeof PortalIndexRoute
   '/api/public/chargily-webhook': typeof ApiPublicChargilyWebhookRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/portal/earnings'
+    | '/portal/messages'
     | '/portal/offers'
     | '/portal/'
     | '/api/public/chargily-webhook'
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/portal/earnings'
+    | '/portal/messages'
     | '/portal/offers'
     | '/portal'
     | '/api/public/chargily-webhook'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/campaign/payment'
     | '/influencer/$id'
     | '/portal/earnings'
+    | '/portal/messages'
     | '/portal/offers'
     | '/portal/'
     | '/api/public/chargily-webhook'
@@ -329,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalOffersRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/portal/messages': {
+      id: '/portal/messages'
+      path: '/messages'
+      fullPath: '/portal/messages'
+      preLoaderRoute: typeof PortalMessagesRouteImport
+      parentRoute: typeof PortalRoute
+    }
     '/portal/earnings': {
       id: '/portal/earnings'
       path: '/earnings'
@@ -400,12 +419,14 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface PortalRouteChildren {
   PortalEarningsRoute: typeof PortalEarningsRoute
+  PortalMessagesRoute: typeof PortalMessagesRoute
   PortalOffersRoute: typeof PortalOffersRoute
   PortalIndexRoute: typeof PortalIndexRoute
 }
 
 const PortalRouteChildren: PortalRouteChildren = {
   PortalEarningsRoute: PortalEarningsRoute,
+  PortalMessagesRoute: PortalMessagesRoute,
   PortalOffersRoute: PortalOffersRoute,
   PortalIndexRoute: PortalIndexRoute,
 }
