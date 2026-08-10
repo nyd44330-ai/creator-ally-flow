@@ -408,6 +408,21 @@ export type Database = {
           share: number
         }[]
       }
+      link_influencer_account: { Args: never; Returns: string }
+      my_influencer_earnings: {
+        Args: never
+        Returns: {
+          budget: number
+          campaign_id: string
+          campaign_name: string
+          end_date: string
+          influencer_count: number
+          invite_status: string
+          share: number
+          start_date: string
+          status: string
+        }[]
+      }
     }
     Enums: {
       campaign_status:
