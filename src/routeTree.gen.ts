@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as InfluencerLoginRouteImport } from './routes/influencer-login'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -26,6 +27,11 @@ import { Route as ApiPublicChargilyWebhookRouteImport } from './routes/api/publi
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InfluencerLoginRoute = InfluencerLoginRouteImport.update({
+  id: '/influencer-login',
+  path: '/influencer-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FavoritesRoute = FavoritesRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRouteWithChildren
   '/campaigns': typeof CampaignsRoute
   '/favorites': typeof FavoritesRoute
+  '/influencer-login': typeof InfluencerLoginRoute
   '/messages': typeof MessagesRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/campaign/new': typeof CampaignNewRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/campaigns'
     | '/favorites'
+    | '/influencer-login'
     | '/messages'
     | '/auth/callback'
     | '/campaign/new'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CampaignsRoute: typeof CampaignsRoute
   FavoritesRoute: typeof FavoritesRoute
+  InfluencerLoginRoute: typeof InfluencerLoginRoute
   MessagesRoute: typeof MessagesRoute
   CampaignNewRoute: typeof CampaignNewRoute
   CampaignPaymentRoute: typeof CampaignPaymentRouteWithChildren
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/influencer-login': {
+      id: '/influencer-login'
+      path: '/influencer-login'
+      fullPath: '/influencer-login'
+      preLoaderRoute: typeof InfluencerLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favorites': {
@@ -323,6 +343,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   CampaignsRoute: CampaignsRoute,
   FavoritesRoute: FavoritesRoute,
+  InfluencerLoginRoute: InfluencerLoginRoute,
   MessagesRoute: MessagesRoute,
   CampaignNewRoute: CampaignNewRoute,
   CampaignPaymentRoute: CampaignPaymentRouteWithChildren,
@@ -332,13 +353,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
