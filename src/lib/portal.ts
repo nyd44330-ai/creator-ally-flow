@@ -31,7 +31,7 @@ export function useInfluencerSelf() {
     queryKey: ["portal", "self", user?.id],
     enabled: !!user,
     queryFn: async (): Promise<SelfInfluencer | null> => {
-      await supabase.rpc("link_influencer_account");
+      await supabase.rpc("ensure_influencer_profile");
       const { data, error } = await supabase
         .from("influencers")
         .select("*")
