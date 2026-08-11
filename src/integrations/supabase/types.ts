@@ -395,6 +395,7 @@ export type Database = {
     }
     Functions: {
       claim_influencer_profile: { Args: never; Returns: string }
+      ensure_influencer_profile: { Args: never; Returns: string }
       influencer_earnings: {
         Args: never
         Returns: {
