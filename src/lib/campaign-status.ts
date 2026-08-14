@@ -1,4 +1,4 @@
-import type { Influencer } from "./mock-influencers";
+import type { Influencer } from "./influencers";
 
 export type CampaignStatus = "draft" | "pending" | "active" | "completed" | "cancelled";
 

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BottomNav } from "@/components/BottomNav";
 import { InfluencerCard } from "@/components/InfluencerCard";
 import { FeaturedInfluencerCard } from "@/components/FeaturedInfluencerCard";
-import { fetchInfluencers } from "@/lib/mock-influencers";
+import { fetchInfluencers } from "@/lib/influencers";
 
 
 export const Route = createFileRoute("/")({

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
+import { PUBLIC_INFLUENCER_COLUMNS } from "@/lib/influencers";
 
 export type SelfInfluencer = {
   id: string;
@@ -21,7 +22,7 @@ export type SelfInfluencer = {
   price_min: number;
   price_max: number;
   services: unknown;
-  email: string | null;
+  published: boolean;
 };
 
 export function useInfluencerSelf() {
@@ -34,11 +35,11 @@ export function useInfluencerSelf() {
       await supabase.rpc("ensure_influencer_profile");
       const { data, error } = await supabase
         .from("influencers")
-        .select("*")
+        .select(PUBLIC_INFLUENCER_COLUMNS)
         .eq("user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
-      return (data as SelfInfluencer | null) ?? null;
+      return (data as unknown as SelfInfluencer | null) ?? null;
     },
   });
 
@@ -51,6 +52,7 @@ export function useInfluencerSelf() {
 }
 
 export const inviteStatusLabels: Record<string, string> = {
+  pending_payment: "بانتظار دفع المعلن",
   invited: "دعوة جديدة",
   accepted: "مقبولة",
   declined: "مرفوضة",

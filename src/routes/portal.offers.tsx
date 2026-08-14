@@ -40,6 +40,7 @@ function OffersPage() {
           "campaign_id,status,created_at,campaign:campaigns(name,goal,budget,platforms,deliverables,start_date,end_date)",
         )
         .eq("influencer_id", influencer!.id)
+        .neq("status", "pending_payment")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as unknown as OfferRow[]) ?? [];
@@ -54,11 +55,52 @@ function OffersPage() {
       .update({ status })
       .eq("campaign_id", campaignId)
       .eq("influencer_id", influencer.id);
-    setBusy(null);
+
     if (error) {
+      setBusy(null);
       toast.error("تعذّر تحديث العرض");
       return;
     }
+
+    if (status === "accepted") {
+      const { data: campaign } = await supabase
+        .from("campaigns")
+        .select("id,name,advertiser_id")
+        .eq("id", campaignId)
+        .maybeSingle();
+
+      if (campaign) {
+        const { data: existing } = await supabase
+          .from("conversations")
+          .select("id")
+          .eq("campaign_id", campaignId)
+          .eq("influencer_id", influencer.id)
+          .maybeSingle();
+
+        if (!existing) {
+          const { data: conv } = await supabase
+            .from("conversations")
+            .insert({
+              advertiser_id: campaign.advertiser_id,
+              influencer_id: influencer.id,
+              campaign_id: campaign.id,
+              last_message: `قبل المؤثر العرض على حملة: ${campaign.name}`,
+              last_message_at: new Date().toISOString(),
+            })
+            .select("id")
+            .maybeSingle();
+
+          if (conv) {
+            await supabase.from("messages").insert({
+              conversation_id: conv.id,
+              sender: "influencer",
+              body: `مرحباً، قبلت العرض الخاص بحملة "${campaign.name}" ويمكننا البدء.`,
+            });
+          }
+        }
+      }
+    }
+    setBusy(null);
     toast.success(status === "accepted" ? "تم قبول العرض" : "تم رفض العرض");
     queryClient.invalidateQueries({ queryKey: ["portal"] });
   };

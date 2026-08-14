@@ -3,7 +3,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { Influencer } from "@/lib/mock-influencers";
+import type { Influencer } from "@/lib/influencers";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 

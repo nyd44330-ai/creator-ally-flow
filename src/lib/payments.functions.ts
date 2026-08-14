@@ -27,6 +27,15 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
       .maybeSingle();
     if (cErr || !campaign) throw new Error("الحملة غير موجودة");
 
+    // Prevent paying twice for the same campaign
+    const { data: paidRow } = await supabase
+      .from("payments")
+      .select("id")
+      .eq("campaign_id", campaign.id)
+      .eq("status", "paid")
+      .maybeSingle();
+    if (paidRow) throw new Error("تم دفع هذه الحملة مسبقاً");
+
     const amount = campaign.budget;
     const fee = Math.round(amount * 0.05);
     const tax = Math.round((amount + fee) * 0.09);
@@ -190,48 +199,26 @@ export const finalizeCampaignPayment = createServerFn({ method: "POST" })
     // Mark payment paid
     await supabase.from("payments").update({ status: "paid" }).eq("id", payment.id);
 
-    // Activate campaign (use admin to bypass any status update policy edge cases)
+    // Activate campaign and record the spent amount
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("campaigns").update({ status: "active" }).eq("id", campaign.id);
+    const { data: paidTotals } = await supabaseAdmin
+      .from("payments")
+      .select("total")
+      .eq("campaign_id", campaign.id)
+      .eq("status", "paid");
+    const spent = (paidTotals ?? []).reduce((sum, p) => sum + (p.total ?? 0), 0);
 
-    // Create conversations for invited influencers (idempotent)
-    const { data: cis } = await supabaseAdmin
+    await supabaseAdmin
+      .from("campaigns")
+      .update({ status: "active", spent })
+      .eq("id", campaign.id);
+
+    // Release the invitations to the influencers (conversations start on acceptance)
+    await supabaseAdmin
       .from("campaign_influencers")
-      .select("influencer_id")
-      .eq("campaign_id", campaign.id);
-
-    if (cis && cis.length > 0) {
-      for (const ci of cis) {
-        const { data: existing } = await supabaseAdmin
-          .from("conversations")
-          .select("id")
-          .eq("advertiser_id", campaign.advertiser_id)
-          .eq("influencer_id", ci.influencer_id)
-          .eq("campaign_id", campaign.id)
-          .maybeSingle();
-        if (existing) continue;
-
-        const { data: conv } = await supabaseAdmin
-          .from("conversations")
-          .insert({
-            advertiser_id: campaign.advertiser_id,
-            influencer_id: ci.influencer_id,
-            campaign_id: campaign.id,
-            last_message: `دعوة للانضمام إلى حملة: ${campaign.name}`,
-            last_message_at: new Date().toISOString(),
-          })
-          .select("id")
-          .single();
-
-        if (conv) {
-          await supabaseAdmin.from("messages").insert({
-            conversation_id: conv.id,
-            sender: "system",
-            body: `تم إنشاء الحملة "${campaign.name}" ودعوة المؤثر للانضمام.`,
-          });
-        }
-      }
-    }
+      .update({ status: "invited" })
+      .eq("campaign_id", campaign.id)
+      .eq("status", "pending_payment");
 
     return { status: "active" as const };
   });

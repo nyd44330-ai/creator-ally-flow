@@ -148,7 +148,7 @@ function NewCampaignPage() {
         await supabase.from("campaign_influencers").insert({
           campaign_id: campaign.id,
           influencer_id: influencer,
-          status: "invited",
+          status: "pending_payment",
         });
       }
 
