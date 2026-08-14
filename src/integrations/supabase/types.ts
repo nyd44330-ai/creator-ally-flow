@@ -192,6 +192,7 @@ export type Database = {
           portfolio: Json
           price_max: number
           price_min: number
+          published: boolean
           rating: number
           reviews: number
           services: Json
@@ -218,6 +219,7 @@ export type Database = {
           portfolio?: Json
           price_max?: number
           price_min?: number
+          published?: boolean
           rating?: number
           reviews?: number
           services?: Json
@@ -244,6 +246,7 @@ export type Database = {
           portfolio?: Json
           price_max?: number
           price_min?: number
+          published?: boolean
           rating?: number
           reviews?: number
           services?: Json
@@ -389,27 +392,40 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      claim_influencer_profile: { Args: never; Returns: string }
       ensure_influencer_profile: { Args: never; Returns: string }
-      influencer_earnings: {
-        Args: never
-        Returns: {
-          campaign_id: string
-          campaign_name: string
-          campaign_status: Database["public"]["Enums"]["campaign_status"]
-          created_at: string
-          invite_status: string
-          paid: boolean
-          participants: number
-          share: number
-        }[]
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
-      link_influencer_account: { Args: never; Returns: string }
       my_influencer_earnings: {
         Args: never
         Returns: {
@@ -426,6 +442,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "advertiser" | "influencer" | "admin"
       campaign_status:
         | "draft"
         | "pending"
@@ -559,6 +576,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["advertiser", "influencer", "admin"],
       campaign_status: ["draft", "pending", "active", "completed", "cancelled"],
     },
   },
