@@ -53,42 +53,24 @@ export const Route = createFileRoute("/api/public/chargily-webhook")({
             .update({ status: "paid", provider_ref: providerRef ?? null })
             .eq("id", paymentId);
 
+          const { data: paidTotals } = await supabaseAdmin
+            .from("payments")
+            .select("total")
+            .eq("campaign_id", campaignId)
+            .eq("status", "paid");
+          const spent = (paidTotals ?? []).reduce((sum, p) => sum + (p.total ?? 0), 0);
+
           await supabaseAdmin
             .from("campaigns")
-            .update({ status: "active" })
+            .update({ status: "active", spent })
             .eq("id", campaignId);
 
-          // Create conversations for each invited influencer
-          const { data: cis } = await supabaseAdmin
+          // Release invitations; conversations are created when an influencer accepts
+          await supabaseAdmin
             .from("campaign_influencers")
-            .select("influencer_id, campaign:campaigns(advertiser_id, name)")
-            .eq("campaign_id", campaignId);
-
-          if (cis) {
-            for (const ci of cis) {
-              const advertiser =
-                (ci as unknown as { campaign: { advertiser_id: string; name: string } }).campaign;
-              if (!advertiser) continue;
-              const { data: conv } = await supabaseAdmin
-                .from("conversations")
-                .insert({
-                  advertiser_id: advertiser.advertiser_id,
-                  influencer_id: ci.influencer_id,
-                  campaign_id: campaignId,
-                  last_message: `دعوة للانضمام إلى حملة: ${advertiser.name}`,
-                  last_message_at: new Date().toISOString(),
-                })
-                .select("id")
-                .single();
-              if (conv) {
-                await supabaseAdmin.from("messages").insert({
-                  conversation_id: conv.id,
-                  sender: "system",
-                  body: `تم إنشاء الحملة "${advertiser.name}" ودعوة المؤثر للانضمام.`,
-                });
-              }
-            }
-          }
+            .update({ status: "invited" })
+            .eq("campaign_id", campaignId)
+            .eq("status", "pending_payment");
         } else if (evt.type === "checkout.failed" || evt.type === "checkout.cancelled") {
           await supabaseAdmin
             .from("payments")
