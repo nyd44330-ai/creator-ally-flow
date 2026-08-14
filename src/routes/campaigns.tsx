@@ -5,7 +5,7 @@ import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { statusLabel, type CampaignStatus } from "@/lib/mock-campaigns";
+import { statusLabel, type CampaignStatus } from "@/lib/campaign-status";
 
 export const Route = createFileRoute("/campaigns")({
   component: CampaignsPage,

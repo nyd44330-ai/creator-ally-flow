@@ -1,6 +1,6 @@
 import { BadgeCheck, Star } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import type { Influencer } from "@/lib/mock-influencers";
+import type { Influencer } from "@/lib/influencers";
 
 export function FeaturedInfluencerCard({ influencer }: { influencer: Influencer }) {
   return (

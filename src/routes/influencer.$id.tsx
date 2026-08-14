@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiYoutube } from "react-icons/si";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInfluencerById, type Influencer, type PortfolioItem } from "@/lib/mock-influencers";
+import { fetchInfluencerById, type Influencer, type PortfolioItem } from "@/lib/influencers";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/influencer/$id")({
