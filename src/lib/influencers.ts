@@ -87,21 +87,24 @@ export function mapInfluencer(r: DbRow): Influencer {
   };
 }
 
+export const PUBLIC_INFLUENCER_COLUMNS =
+  "id,name,category,image,rating,reviews,verified,featured,tiktok,instagram,youtube,tiktok_url,instagram_url,youtube_url,price_min,price_max,services,bio,location,languages,portfolio,published";
+
 export async function fetchInfluencers(): Promise<Influencer[]> {
   const { data, error } = await supabase
     .from("influencers")
-    .select("*")
+    .select(PUBLIC_INFLUENCER_COLUMNS)
     .order("rating", { ascending: false });
   if (error) throw error;
-  return (data as DbRow[]).map(mapInfluencer);
+  return (data as unknown as DbRow[]).map(mapInfluencer);
 }
 
 export async function fetchInfluencerById(id: string): Promise<Influencer | null> {
   const { data, error } = await supabase
     .from("influencers")
-    .select("*")
+    .select(PUBLIC_INFLUENCER_COLUMNS)
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
-  return data ? mapInfluencer(data as DbRow) : null;
+  return data ? mapInfluencer(data as unknown as DbRow) : null;
 }
