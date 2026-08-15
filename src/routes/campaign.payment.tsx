@@ -98,18 +98,40 @@ function PaymentPage() {
     [amount, fee, tax],
   );
 
+  const openCheckout = (url: string) => {
+    const target = url.replace(/^http:\/\//i, "https://");
+    setCheckoutUrl(target);
+    try {
+      // The app can run inside an iframe (preview/embeds); Chargily refuses framing,
+      // so always break out to the top-level window.
+      if (window.top && window.top !== window.self) {
+        window.top.location.href = target;
+        return;
+      }
+    } catch {
+      const opened = window.open(target, "_blank", "noopener,noreferrer");
+      if (opened) return;
+    }
+    window.location.assign(target);
+  };
+
   const handlePay = async () => {
     if (!campaign) {
       toast.error("لا توجد حملة للدفع");
       return;
     }
     setProcessing(true);
+    setCheckoutUrl(null);
     try {
       const res = await createCheckout({ data: { campaignId: campaign, method } });
-      window.location.href = res.checkoutUrl;
+      if (!res?.checkoutUrl) {
+        throw new Error("لم نستلم رابط الدفع من Chargily");
+      }
+      openCheckout(res.checkoutUrl);
     } catch (e) {
       console.error(e);
-      toast.error("تعذّر بدء الدفع، حاول مجدداً");
+      const msg = e instanceof Error && e.message ? e.message : "تعذّر بدء الدفع، حاول مجدداً";
+      toast.error(msg);
       setProcessing(false);
     }
   };
