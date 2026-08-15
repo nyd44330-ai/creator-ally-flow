@@ -240,6 +240,19 @@ function PaymentPage() {
       </main>
 
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-surface/95 backdrop-blur">
+        {checkoutUrl && (
+          <div className="mx-auto max-w-md px-4 pt-3 text-center text-xs text-muted-foreground">
+            لم تُفتح صفحة Chargily؟{" "}
+            <a
+              href={checkoutUrl}
+              target="_top"
+              rel="noreferrer"
+              className="font-bold text-primary underline"
+            >
+              اضغط هنا لفتحها
+            </a>
+          </div>
+        )}
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
           <button
             type="button"
