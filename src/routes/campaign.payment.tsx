@@ -53,7 +53,6 @@ function PaymentPage() {
   const { user, loading: authLoading, isAuthed } = useAuth();
   const [method, setMethod] = useState<Method>("edahabia");
   const [processing, setProcessing] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [campaignData, setCampaignData] = useState<{ name: string; budget: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const createCheckout = useServerFn(createChargilyCheckout);
@@ -99,40 +98,18 @@ function PaymentPage() {
     [amount, fee, tax],
   );
 
-  const openCheckout = (url: string) => {
-    const target = url.replace(/^http:\/\//i, "https://");
-    setCheckoutUrl(target);
-    try {
-      // The app can run inside an iframe (preview/embeds); Chargily refuses framing,
-      // so always break out to the top-level window.
-      if (window.top && window.top !== window.self) {
-        window.top.location.href = target;
-        return;
-      }
-    } catch {
-      const opened = window.open(target, "_blank", "noopener,noreferrer");
-      if (opened) return;
-    }
-    window.location.assign(target);
-  };
-
   const handlePay = async () => {
     if (!campaign) {
       toast.error("لا توجد حملة للدفع");
       return;
     }
     setProcessing(true);
-    setCheckoutUrl(null);
     try {
       const res = await createCheckout({ data: { campaignId: campaign, method } });
-      if (!res?.checkoutUrl) {
-        throw new Error("لم نستلم رابط الدفع من Chargily");
-      }
-      openCheckout(res.checkoutUrl);
+      window.location.href = res.checkoutUrl;
     } catch (e) {
       console.error(e);
-      const msg = e instanceof Error && e.message ? e.message : "تعذّر بدء الدفع، حاول مجدداً";
-      toast.error(msg);
+      toast.error("تعذّر بدء الدفع، حاول مجدداً");
       setProcessing(false);
     }
   };
@@ -240,19 +217,6 @@ function PaymentPage() {
       </main>
 
       <div className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-surface/95 backdrop-blur">
-        {checkoutUrl && (
-          <div className="mx-auto max-w-md px-4 pt-3 text-center text-xs text-muted-foreground">
-            لم تُفتح صفحة Chargily؟{" "}
-            <a
-              href={checkoutUrl}
-              target="_top"
-              rel="noreferrer"
-              className="font-bold text-primary underline"
-            >
-              اضغط هنا لفتحها
-            </a>
-          </div>
-        )}
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
           <button
             type="button"
