@@ -53,6 +53,7 @@ function PaymentPage() {
   const { user, loading: authLoading, isAuthed } = useAuth();
   const [method, setMethod] = useState<Method>("edahabia");
   const [processing, setProcessing] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [campaignData, setCampaignData] = useState<{ name: string; budget: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const createCheckout = useServerFn(createChargilyCheckout);
