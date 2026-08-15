@@ -124,12 +124,18 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
       throw new Error("تعذّر إنشاء عملية الدفع");
     }
 
+    const checkoutUrl = (checkout.checkout_url ?? "").replace(/^http:\/\//i, "https://");
+    if (!checkoutUrl) {
+      await supabase.from("payments").update({ status: "failed" }).eq("id", payment.id);
+      throw new Error("لم يُرجع Chargily رابط الدفع");
+    }
+
     await supabase
       .from("payments")
-      .update({ provider_ref: checkout.id, checkout_url: checkout.checkout_url })
+      .update({ provider_ref: checkout.id, checkout_url: checkoutUrl })
       .eq("id", payment.id);
 
-    return { checkoutUrl: checkout.checkout_url };
+    return { checkoutUrl };
   });
 
 const FinalizeInput = z.object({ campaignId: z.string().uuid() });
