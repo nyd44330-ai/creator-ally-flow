@@ -53,7 +53,28 @@ export const createChargilyCheckout = createServerFn({ method: "POST" })
         ? ["https://pay.chargily.net/api/v2"]
         : ["https://pay.chargily.net/api/v2", "https://pay.chargily.net/test/api/v2"];
 
-    const origin = "https://creator-ally-flow.lovable.app";
+    // Build the return URLs from the actual request origin so they always
+    // point at the live site (never a stale/renamed domain).
+    const { getRequestHeader, getRequestUrl } = await import("@tanstack/react-start/server");
+    const fallbackOrigin = "https://waslaa.lovable.app";
+    let origin = fallbackOrigin;
+    try {
+      const forwardedHost = getRequestHeader("x-forwarded-host");
+      const forwardedProto = getRequestHeader("x-forwarded-proto") ?? "https";
+      const originHeader = getRequestHeader("origin");
+      if (forwardedHost) {
+        origin = `${forwardedProto}://${forwardedHost}`;
+      } else if (originHeader) {
+        origin = originHeader;
+      } else {
+        origin = new URL(getRequestUrl()).origin;
+      }
+    } catch {
+      origin = fallbackOrigin;
+    }
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      origin = fallbackOrigin;
+    }
 
     const successUrl = `${origin}/campaign/payment/success?campaign=${campaign.id}`;
     const failureUrl = `${origin}/campaign/payment/cancel?campaign=${campaign.id}`;

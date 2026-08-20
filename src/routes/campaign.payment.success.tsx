@@ -35,7 +35,7 @@ function SuccessPage() {
         if (res.status === "active") {
           setState("done");
           setTimeout(() => {
-            if (!cancelled) navigate({ to: "/messages", replace: true });
+            if (!cancelled) navigate({ to: "/campaigns", replace: true });
           }, 1200);
           return;
         }
@@ -78,10 +78,10 @@ function SuccessPage() {
           </div>
           <h1 className="mb-2 text-xl font-bold text-foreground">تم الدفع بنجاح</h1>
           <p className="mb-6 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            تم تفعيل الحملة وإرسال الدعوات إلى المؤثرين. سيتم تحويلك إلى الرسائل...
+            تم تفعيل الحملة وإرسال الدعوات إلى المؤثرين. سيتم تحويلك إلى حملاتك...
           </p>
-          <Link to="/messages" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
-            فتح الرسائل الآن
+          <Link to="/campaigns" className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground">
+            فتح حملاتي الآن
           </Link>
         </>
       )}
