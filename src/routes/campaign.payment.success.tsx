@@ -35,7 +35,7 @@ function SuccessPage() {
         if (res.status === "active") {
           setState("done");
           setTimeout(() => {
-            if (!cancelled) navigate({ to: "/messages", replace: true });
+            if (!cancelled) navigate({ to: "/campaigns", replace: true });
           }, 1200);
           return;
         }
